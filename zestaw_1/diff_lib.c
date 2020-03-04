@@ -3,9 +3,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-char ** create_table(int size) {
-	char ** blocks = NULL;
-	if ((blocks = malloc(size * sizeof(char *))))
+char *** create_table(int size) {
+	char *** blocks = NULL;
+	if ((blocks = malloc(size * sizeof(char **))))
 		return blocks;
 	else {
 		printf("error with creating blocks table");
@@ -13,7 +13,7 @@ char ** create_table(int size) {
 	}
 }
 
-char ** divide_string(char * str) {
+void divide_string(char * str, char ** operations_arr) {
 	int i;
 	int j;
 	int cnt = 1;
@@ -25,7 +25,7 @@ char ** divide_string(char * str) {
 			cnt++;
 		}
 	}
-	char ** operations_arr = malloc(cnt * sizeof(char*));
+	operations_arr = malloc(cnt * sizeof(char*));
 	int * positions = malloc( (cnt - 1) * sizeof(int));
 	
 	j = 0;
@@ -47,10 +47,9 @@ char ** divide_string(char * str) {
 	strncpy(operations_arr[i], str + bck, strlen(str) - bck);
 	operations_arr[i][strlen(str) - bck] = '\0';
 	printf("%s\n", operations_arr[i]);
-	return operations_arr[i];
 }	
 
-int parse_files(int i, char ** argv, int argc) {
+int parse_files(int i, char ** argv, int argc, char *** block_array, int index) {
 	if (++i == argc) return i; 
 	char * divisor = NULL;
 	while ((divisor = strchr(argv[i], ':'))) {
@@ -78,7 +77,7 @@ int parse_files(int i, char ** argv, int argc) {
 		FILE * f = popen(command, "r");
 		fread(t, 200, 1, f);
 		printf("%s\n\n", t);
-		divide_string(t);
+		divide_string(t, block_array[index]);
 
 		if (++i == argc) break;
 
@@ -86,14 +85,22 @@ int parse_files(int i, char ** argv, int argc) {
 	return i;
 }
 
+void remove_block(char *** block_array, int block_number) {
+	char ** block = block_array[block_number];
+	int i;
+	for (int i = 0; i 
+	free(block_array + block_number);
+}
+
 int main(int argc, char ** argv) {
 	printf("%d\n ", argc);
 	printf("hello\n");
 	int i;
+	int index = 0;
 	for (i = 0; i < argc; ++i) 
 		printf("%s\n", argv[i]);
 
-	char ** block_array = NULL;
+	char *** block_array = NULL;
 
 	// checking the parameters
 	// 
@@ -109,7 +116,8 @@ int main(int argc, char ** argv) {
 	else if (strcmp(argv[i], "compare_pairs") == 0) {
 		fflush(stdout);
 		printf("afsdfsdf");
-		i = parse_files(i, argv, argc);
+		i = parse_files(i, argv, argc, block_array, index);
+		index++;
 	}
 	
 	else {
