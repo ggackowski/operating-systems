@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -11,6 +12,43 @@ char ** create_table(int size) {
 		return NULL;
 	}
 }
+
+char ** divide_string(char * str) {
+	int i;
+	int j;
+	int cnt = 1;
+	int bck = 0;
+	for (i = 0; str[i] != '\0'; ++i) {
+		printf("%d, %c:\n", i, str[i]);
+		if (str[i] == '\n' && isdigit(str[i+1])) {
+			printf("podzial\n");
+			cnt++;
+		}
+	}
+	char ** operations_arr = malloc(cnt * sizeof(char*));
+	int * positions = malloc( (cnt - 1) * sizeof(int));
+	
+	j = 0;
+	for (i = 0; str[i] != '\0'; ++i) {
+		if (str[i] == '\n' && isdigit(str[i + 1])) {
+				positions[j++] = i;
+		}
+	}
+	for (i = 0; i < cnt - 1; ++i) {
+		printf("OPERACJA %d\n", i);
+		operations_arr[i] = malloc((positions[i] - bck + 1)	* sizeof(char));
+		strncpy(operations_arr[i], str + bck, positions[i] - bck);
+		operations_arr[i][positions[i] - bck] = '\0';
+		bck = positions[i] + 1;
+		printf("%s\n", operations_arr[i]);
+	}
+	printf("OPERACJA %d\n", i);
+	operations_arr[i] = malloc((strlen(str) - bck + 1) * sizeof(char));
+	strncpy(operations_arr[i], str + bck, strlen(str) - bck);
+	operations_arr[i][strlen(str) - bck] = '\0';
+	printf("%s\n", operations_arr[i]);
+	return operations_arr[i];
+}	
 
 int parse_files(int i, char ** argv, int argc) {
 	if (++i == argc) return i; 
@@ -36,7 +74,12 @@ int parse_files(int i, char ** argv, int argc) {
 		strcat(command, " ");
 		strcat(command, file_name2);
 		printf("%s\n", command);
-		system(command);
+		char t[200];
+		FILE * f = popen(command, "r");
+		fread(t, 200, 1, f);
+		printf("%s\n\n", t);
+		divide_string(t);
+
 		if (++i == argc) break;
 
 	}
