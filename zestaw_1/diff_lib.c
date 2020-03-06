@@ -76,7 +76,7 @@ void remove_sequence(char **** sequence, int length) {
 	free(*sequence);
 }
 
-void execute_sequence_at(char *** sequence, int index, char *** blocks_table, int size, int * sizes) {
+int execute_sequence_at(char *** sequence, int index, char *** blocks_table, int size, int * sizes) {
 	int i;
 
 	for (i = 0; i < size; ++i) {
@@ -96,8 +96,10 @@ void execute_sequence_at(char *** sequence, int index, char *** blocks_table, in
 			divide_string(t, &blocks_table[i], sizes, i);
 			fclose(f);
 			system("rm tmp");
+			return i;
 		}
 	}
+	return -1;
 	//error no free space in block table
 }
 
@@ -106,32 +108,6 @@ void execute_sequence_at(char *** sequence, int index, char *** blocks_table, in
 
 
 
-int create_and_parse_pair(int i, char ** argv, int argc, char *** block_array, int index, int * sizes) {
-	if (++i == argc) return i; 
-	char * divisor = NULL;
-	while ((divisor = strchr(argv[i], ':'))) {
-		char * str = calloc(strlen(argv[i]) , sizeof(char));
-		strcpy(str, argv[i]);
-		char * file_name1 = calloc((int)((divisor - argv[i]) + 1) , sizeof(char));
-		strncpy(file_name1, str, (int)(divisor - argv[i]));
-		file_name1[(int)(divisor-argv[i])] = '\0';
-		char * file_name2 = calloc((int)(strlen(argv[i]) - strlen(file_name1)) , sizeof(char));
-		strcpy(file_name2, divisor + 1);
-		char * command = calloc((strlen(file_name1) + strlen(file_name2) + 7) , sizeof(char));
-		command[0] = '\0';
-		strcat(command, "diff ");
-		strcat(command, file_name1);
-		strcat(command, " ");
-		strcat(command, file_name2);
-		char t[200];
-		FILE * f = popen(command, "r");
-		fread(t, 200, 1, f);
-		divide_string(t, &block_array[index], sizes, index);
-
-		if (++i == argc) break;
-	}
-	return i - 1;
-}
 
 void remove_operation(char *** block_array, int block_number, int operation_number, int * sizes) {
 	sizes[block_number]--;
@@ -151,56 +127,3 @@ int operations_in_block(int block_number, int * sizes) {
 	return sizes[block_number];
 }
 
-int main(int argc, char ** argv) {
-	int * sizes = NULL;
-	char *** block_array = NULL;
-	int seq1max_size = 1;
-	char *** sequence1 = NULL;
-	int seq1act_size = 0;
-	int num_of_blocks = 2;
-
-	create_table(num_of_blocks, &sizes, &block_array);
-	create_sequence(seq1max_size, &sequence1, &seq1act_size);
-	add_to_sequence(sequence1, &seq1act_size, "a.txt", "b.txt");
-	add_to_sequence(sequence1, &seq1act_size, "a.txt", "b.txt");
-
-	execute_sequence_at(sequence1, 0, block_array, num_of_blocks, sizes);
-	execute_sequence_at(sequence1, 1, block_array, num_of_blocks, sizes);
-	printf("%d\n", operations_in_block(0, sizes));
-
-	remove_operation(block_array, 0, 1, sizes);
-	printf("%d\n", operations_in_block(0, sizes));
-
-	remove_block(block_array, 0, sizes);
-	printf("%d", operations_in_block(0, sizes));
-
-
-	
-	// checking the parameters
-	// 
-}
-/*
-	while (i < argc) {
-	
-		if (strcmp(argv[i], "create_table") == 0) {
-			block_array = create_table(atoi(argv[++i]), &sizes);
-		}
-		else if (strcmp(argv[i], "compare_pairs") == 0) {
-			i = create_and_parse_pair(i, argv, argc, block_array, index, sizes);
-			index++;
-		}
-		else if(strcmp(argv[i], "remove_block") == 0) {
-			remove_block(block_array, atoi(argv[++i]), sizes);
-		}
-		else if(strcmp(argv[i], "remove_operation") == 0) {
-			remove_operation(&block_array[atoi(argv[i + 1])], atoi(argv[i + 2]));
-			i += 2;
-		}
-	
-		else {
-			printf("niepoprawny argument %s\n", argv[i]);
-		}
-			i++;	
-	}
-
-*/
