@@ -1,6 +1,8 @@
 #include "diff_lib.h"
 
 void divide_string(char * str, char *** operations_arr, int * sizes, int index) {
+	printf("\n\npara\n\n");
+	fflush(stdout);
 	int i;
 	int j;
 	int cnt = 1;
@@ -10,9 +12,22 @@ void divide_string(char * str, char *** operations_arr, int * sizes, int index) 
 			cnt++;
 		}
 	}
-	malloc(cnt * sizeof(char *));
+	printf("TERAZ ALOKACJA TESTU");
+	printf("\n%d\n\n", cnt);
+	//system("sleep 1");
+	fflush(stdout);
+	 malloc(cnt * sizeof(char *));
+	fflush(stdout);
+	printf("musisz napisac to");
+	//system("sleep 3");
+	fflush(stdout);
 	(*operations_arr) = calloc(cnt , sizeof(char*));
+	printf("tu jeszcze zyje");
+	fflush(stdout);
 	sizes[index] = cnt;
+
+	printf("tu jeszcze zyje");
+	fflush(stdout);
 
 	int * positions = calloc((cnt - 1) ,  sizeof(int));
 	j = 0;
@@ -78,7 +93,11 @@ void remove_sequence(char **** sequence, int length) {
 int execute_sequence_at(char *** sequence, int index, char *** blocks_table, int size, int * sizes) {
 	int i;
 	
+	printf("odpalaem sekwencja[%d]\n", index);
+	fflush(stdout);
 	for (i = 0; i < size; ++i) {
+		printf("sizes[%d] = %d\n", i, sizes[i]);
+		fflush(stdout);
 		if (sizes[i] == 0) {
 			char * command = calloc((strlen(sequence[0][index]) + strlen(sequence[1][index]) + 13) , sizeof(char));
 			command[0] = '\0';
@@ -87,17 +106,34 @@ int execute_sequence_at(char *** sequence, int index, char *** blocks_table, int
 			strcat(command, " ");
 			strcat(command, sequence[1][index]);
 			strcat(command, " > tmp");
+			printf("\n\n%s\n\n", command);
+			fflush(stdout);
 			char * t = NULL;
 			if(!(t = calloc(1000000, sizeof(char)))) {
-				printf("ERROR");
+				printf("ERROR TU WLASNIE");
+				fflush(stdout);
 			}
+			printf("jest");
+			fflush(stdout);
 			system(command);
+			printf("avavava");
+			fflush(stdout);
 			FILE * f = NULL;
 			if (!(f = fopen("tmp", "r"))) {
+				printf("now ypisz");
+				fflush(stdout);
 			}
 			
 			if (fread(t, 1000000, 1, f)) {
+				printf("no wypisff");
+				fflush(stdout);
 			}
+			printf("aaaaaa");
+			fflush(stdout);
+			//printf("dzialam na: %s i %s\n\n na razie sizes[%d] to %d a index = %d\n\n", sequence[0][index], sequence[1][index], i, sizes[i], index);
+			//system("echo tmp");
+			//printf("PODAJE PLIK:\n\n %s \n\n\n", t);
+			fflush(stdout);
 			divide_string(t, &blocks_table[i], sizes, i);
 			fclose(f);
 			system("rm tmp");

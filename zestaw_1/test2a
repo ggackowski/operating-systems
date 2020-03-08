@@ -1,0 +1,4 @@
+Przeprowadzenie porównania par plików — różna ilość elementów w sekwencji par (mała (np. 1-5), średnia oraz duża ilość par) oraz różny stopień podobieństwa plików w parze (pliki bardzo podobne do siebie, pliki w średnim stopniu niepodobne do siebie, pliki w znacznym stopniu niepodobne do siebie)
+Zapisanie, w pamięci, bloków o różnych rozmiarach (odpowiadających rozmiarom różnych przeprowadzonych porównań)
+Usunięcie zaalokowanych bloków o różnych rozmiarach  (odpowiadających rozmiarom różnych przeprowadzonych porównań)
+Na przemian  kilkakrotne dodanie i usunięcie zadanej liczby bloków 
