@@ -1,0 +1,147 @@
+W celu zwiększenia czytelności raportu przedstawiane są tylko czasy operacji "compare_pairs", ponieważ dla pozostałych operacji czas wyniósł w każdym przypadku 0.000000.
+
+Duża ilość plików w sekwencji (1000), pliki podobne do siebie, rozmiar pliku mały
+
+Biblioteki statyczne
+
+Poziom optymalizacji O0
+
+Wykonanie: "compare_pairs"
+real time: 1.890000
+system time: 0.280000
+user time: 0.050000
+
+
+Poziom optymalizacji O1
+
+Wykonanie: "compare_pairs"
+real time: 1.870000
+system time: 0.260000
+user time: 0.070000
+
+Poziom optymalizacji Os
+
+Wykonanie: "compare_pairs"
+real time: 1.840000
+system time: 0.250000
+user time: 0.070000
+
+Biblioteki dzielone
+
+Poziom optymalizacji O0
+
+Wykonanie: "compare_pairs"
+real time: 2.020000
+system time: 0.290000
+user time: 0.050000
+
+Poziom optymalizacji O1
+
+Wykonanie: "compare_pairs"
+real time: 2.030000
+system time: 0.310000
+user time: 0.050000
+
+Pozopm optymalizacji Os
+
+Wykonanie: "compare_pairs"
+real time: 2.000000
+system time: 0.300000
+user time: 0.060000
+
+Biblioteki dynamiczne
+
+Poziom optymalizacji O0
+
+Wykonanie: "compare_pairs"
+real time: 1.960000
+system time: 0.280000
+user time: 0.090000
+
+Poziom optymalizacji O1
+
+Wykonanie: "compare_pairs"
+real time: 1.990000
+system time: 0.290000
+user time: 0.070000
+
+Poziom optymalizacji Os
+
+Wykonanie: "compare_pairs"
+real time: 2.060000
+system time: 0.310000
+user time: 0.060000
+
+Duża ilość plików w sekwencji (1000), pliki podobne do siebie, rozmiar pliku duży
+
+Biblioteki statyczne
+
+Poziom optymalizacji O0
+
+Wykonanie: "compare_pairs"
+real time: 2.140000
+system time: 0.300000
+user time: 0.090000
+
+Poziom optymalizacji O1
+
+Wykonanie: "compare_pairs"
+real time: 2.120000
+system time: 0.300000
+user time: 0.090000
+
+Poziom optymalizacji Os
+
+Wykonanie: "compare_pairs"
+real time: 2.170000
+system time: 0.310000
+user time: 0.080000
+
+Biblioteki dzielone
+
+Poziom optymalizacji O0
+
+Wykonanie: "compare_pairs"
+real time: 2.180000
+system time: 0.330000
+user time: 0.060000
+
+Poziom optymalizacji O1
+
+Wykonanie: "compare_pairs"
+real time: 2.200000
+system time: 0.320000
+user time: 0.090000
+
+Poziom optymalizacji Os
+
+Wykonanie: "compare_pairs"
+real time: 2.170000
+system time: 0.300000
+user time: 0.090000
+
+Biblioteki dynamiczne
+
+Poziom optymalizacji O0
+
+Wykonanie: "compare_pairs"
+real time: 2.160000
+system time: 0.310000
+user time: 0.080000
+
+Poziom optymalizacji O1
+
+Wykonanie: "compare_pairs"
+real time: 2.250000
+system time: 0.300000
+user time: 0.110000
+
+Poziom optymalizacji Os
+
+Wykonanie: "compare_pairs"
+real time: 2.320000
+system time: 0.350000
+user time: 0.080000
+
+Przeprowadzone testy wskazują, że w przypadku bibliotek statycznych kompilacja programu z wykorzystaniem flag O1 lub Os przyśpiesza działanie programu. Przy wykorzystywaniu bibliotek dzielonych przyśpieszenie nie jest widoczne. Testy ponadto pokazały, że podczas korzystania z bibliotek dynamicznych wykorzystanie flag O1 lub Os wydłuża czas działania programu.
+

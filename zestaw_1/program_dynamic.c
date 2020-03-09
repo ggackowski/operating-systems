@@ -3,6 +3,7 @@
 #include <memory.h>
 #include <unistd.h>
 #include "diff_lib.h"
+#include <dlfcn.h>
 
 double time_difference(clock_t start, clock_t stop) {
 	double time_diff = (double)(stop - start) / sysconf(_SC_CLK_TCK);
@@ -22,6 +23,8 @@ void parse_filenames(char * input, char ** filename1, char ** filename2) {
 }
 
 int main(int argc, char ** argv) {
+
+    void * handle = dlopen("./diff_lib.so", RTLD_LAZY);
 	
 	int * sizes = NULL;
 	char *** block_array = NULL;
@@ -39,12 +42,19 @@ int main(int argc, char ** argv) {
 	clock_t clock_start = 0;
 	clock_t clock_stop = times(tms_stop);
 
+    void (*create_table) (int, int **, char ****) = dlsym(handle, "create_table");
+    void (*create_sequence) (int, char ****, int *) = dlsym(handle, "create_sequence");
+    void (*add_to_sequence) (char ***, int *, char *, char *) = dlsym(handle, "add_to_sequence");
+    int (*execute_sequence_at) (char ***, int, char ***, int, int *) = dlsym(handle, "execute_sequence_at");
+    void (*remove_operation) (char ***, int, int, int *) = dlsym(handle, "remove_operation");
+    void (*remove_block) (char ***, int, int *) = dlsym(handle, "remove_block");
+
 	while (i < argc) {
 		printf("Wykonanie: \"%s\"\n", argv[i]);
 		clock_start = times(tms_start);
 		
 		if (strcmp(argv[i], "create_table") == 0) {
-			create_table(atoi(argv[i + 1]), &sizes, &block_array);
+			(*create_table) (atoi(argv[i + 1]), &sizes, &block_array);
 			num_of_blocks = atoi(argv[i + 1]);
 			i++;
 		}
@@ -55,23 +65,23 @@ int main(int argc, char ** argv) {
 				j++;
 
 			}
-			create_sequence(j - i, &sequence1, &seq1act_size);
+			(*create_sequence) (j - i, &sequence1, &seq1act_size);
 			while (i < argc && (strcmp(argv[i], "remove_block") && strcmp(argv[i], "remove_operation") && strcmp(argv[i], "create_table"))) {
 				
 				parse_filenames(argv[i], &filename1, &filename2);
-				add_to_sequence(sequence1, &seq1act_size, filename1, filename2);
+				(*add_to_sequence) (sequence1, &seq1act_size, filename1, filename2);
 				++i;
 			}	
-			for (k = 0; k < seq1act_size; ++k) execute_sequence_at(sequence1, k, block_array, num_of_blocks, sizes);
+			for (k = 0; k < seq1act_size; ++k) (*execute_sequence_at) (sequence1, k, block_array, num_of_blocks, sizes);
 			i--;
 		}
 		else if(strcmp(argv[i], "remove_block") == 0) {
-			remove_block(block_array, atoi(argv[i + 1]), sizes);
+			(*remove_block) (block_array, atoi(argv[i + 1]), sizes);
 			i++;
 
 		}
 		else if(strcmp(argv[i], "remove_operation") == 0) {
-			remove_operation(block_array, atoi(argv[i + 1]), atoi(argv[i + 2]), sizes);
+			(*remove_operation) (block_array, atoi(argv[i + 1]), atoi(argv[i + 2]), sizes);
 			i += 2;
 		}
 	
@@ -85,4 +95,5 @@ int main(int argc, char ** argv) {
 		printf("user time: %f\n\n\n", time_difference(tms_start->tms_utime, tms_stop->tms_utime));
 		i++;	
 	}
+    dlclose(handle);
 }

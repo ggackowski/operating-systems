@@ -1,0 +1,231 @@
+Mała ilość elementów w sekwencji par, pliki podobne do siebie, rozmiar pliku mały 
+1 para plików w sekwencji 
+
+Biblioteki statyczne
+
+Wykonanie: "create_table"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+Wykonanie: "compare_pairs"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "remove_operation"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "remove_block"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+Biblioteki dzielone
+
+Wykonanie: "create_table"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+Wykonanie: "compare_pairs"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "remove_operation"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "remove_block"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+Biblioteki dynamiczne
+
+Wykonanie: "create_table"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+Wykonanie: "compare_pairs"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "remove_operation"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "remove_block"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+Duża ilość plików w sekwencji (1000), pliki podobne do siebie, rozmiar pliku mały
+
+Biblioteki statyczne
+
+Wykonanie: "create_table"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "compare_pairs"
+real time: 1.850000
+system time: 0.220000
+user time: 0.090000
+
+
+Wykonanie: "remove_operation"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "remove_block"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+Biblioteki dzielone
+
+Wykonanie: "create_table"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "compare_pairs"
+real time: 1.870000
+system time: 0.250000
+user time: 0.080000
+
+
+Wykonanie: "remove_operation"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "remove_block"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+Biblioteki dynamiczne
+
+Wykonanie: "create_table"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "compare_pairs"
+real time: 1.840000
+system time: 0.250000
+user time: 0.070000
+
+
+Wykonanie: "remove_operation"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "remove_block"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+Duża ilość plików w sekwencji (1000), pliki podobne do siebie, rozmiar pliku duży
+
+Biblioteki statyczne 
+
+Wykonanie: "create_table"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "compare_pairs"
+real time: 2.000000
+system time: 0.290000
+user time: 0.080000
+
+
+Wykonanie: "remove_operation"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "remove_block"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+Biblioteki dzielone
+
+Wykonanie: "create_table"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "compare_pairs"
+real time: 2.030000
+system time: 0.280000
+user time: 0.100000
+
+
+Wykonanie: "remove_operation"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "remove_block"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+Biblioteki dynamiczne
+
+Wykonanie: "create_table"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "compare_pairs"
+real time: 2.040000
+system time: 0.300000
+user time: 0.080000
+
+
+Wykonanie: "remove_operation"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "remove_block"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+W przypadku testów składających się z pojedynczej pary plików czas wykonania operacji jest tak niewielki, że zapisany czas wyniósł 0.0000. Jedynie dla testów zawierających większą liczbę plików w sekwencji (1000 par) otrzymane zostały niezerowe czasy operacji "compare_pairs". Czasy te są bardzo zbliżone do siebie dla każdego ze sposobów dołączania bibliotek (biblioteki statyczne, dynamiczne, dzielone).
+

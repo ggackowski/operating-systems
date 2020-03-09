@@ -1,0 +1,102 @@
+Mała ilość elementów w sekwencji par, pliki podobne do siebie, rozmiar pliku mały 
+1 para plików w sekwencji 
+
+Wykonanie: "create_table"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "compare_pairs"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "remove_operation"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "remove_block"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+Mała ilość elementów w sekwencji par, pliki niepodobne do siebie, rozmiar pliku mały 
+1 para plików w sekwencji
+
+Wykonanie: "create_table"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "compare_pairs"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "remove_operation"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "remove_block"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+Duża ilość elementów w sekwencji par (1000), pliki podobne do siebie, rozmiar pliku mały 
+
+Wykonanie: "create_table"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "compare_pairs"
+real time: 1.820000
+system time: 0.260000
+user time: 0.060000
+
+
+Wykonanie: "remove_operation"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "remove_block"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+Duża ilość elementów w sekwencji par (1000), pliki podobne do siebie, rozmiar pliku duży
+
+Wykonanie: "create_table"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "compare_pairs"
+real time: 2.900000
+system time: 0.430000
+user time: 0.110000
+
+
+Wykonanie: "remove_operation"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+
+Wykonanie: "remove_block"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
