@@ -159,7 +159,7 @@ int main(int argc, char ** argv) {
     i++;
   }
   if (i < argc) {
-    find_lib(argv[i], mtime, atime, maxdepth, plus_m, plus_a);
+    find_sys(argv[i]);
   }
   else 
     printf("ERR no path\n\n");

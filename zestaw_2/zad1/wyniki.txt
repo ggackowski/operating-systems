@@ -1,0 +1,379 @@
+-Rozmiar rekordu 1 bajt, ilość rekordów: 40000
+copy
+    sys:
+
+Wykonanie: "copy"
+real time: 0.060000
+system time: 0.060000
+user time: 0.000000
+
+    lib:
+    
+Wykonanie: "copy"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+sort
+    sys:
+
+Wykonanie: "sort"
+real time: 12.140000
+system time: 9.410000
+user time: 2.730000
+
+    lib:
+
+Wykonanie: "sort"
+real time: 5.460000
+system time: 2.460000
+user time: 2.990000
+
+
+-Rozmiar rekordu 1 bajt, ilość rekordów: 90000
+copy
+    sys:
+
+Wykonanie: "copy"
+real time: 0.130000
+system time: 0.110000
+user time: 0.000000
+
+    lib:
+
+Wykonanie: "copy"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+sort
+    sys:
+
+Wykonanie: "sort"
+real time: 74.410000
+system time: 56.390000
+user time: 17.730000
+
+    lib:
+
+Wykonanie: "sort"
+real time: 28.090000
+system time: 11.410000
+user time: 16.660000
+
+-Rozmiar rekordu 4 bajty, ilość rekordów: 10000
+copy
+    sys:
+
+Wykonanie: "copy"
+real time: 0.010000
+system time: 0.000000
+user time: 0.000000
+
+    lib:
+
+Wykonanie: "copy"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+sort
+    sys:
+
+Wykonanie: "sort"
+real time: 0.290000
+system time: 0.270000
+user time: 0.020000
+
+    lib:
+
+Wykonanie: "sort"
+real time: 0.370000
+system time: 0.280000
+user time: 0.080000
+
+-Rozmiar rekordu 4 bajty, ilość rekordów: 40000
+copy
+    sys:
+
+Wykonanie: "copy"
+real time: 0.060000
+system time: 0.060000
+user time: 0.000000
+
+    lib:
+
+Wykonanie: "copy"
+real time: 0.000000
+system time: 0.000000
+user time: 0.000000
+
+sort
+    sys:
+
+Wykonanie: "sort"
+real time: 1.320000
+system time: 1.120000
+user time: 0.200000
+
+    lib:
+
+Wykonanie: "sort"
+real time: 1.590000
+system time: 1.230000
+user time: 0.350000
+
+-Rozmiar rekordu 512 bajtów, ilość rekordów: 10000
+copy
+    sys:
+    
+Wykonanie: "copy"
+real time: 0.030000
+system time: 0.020000
+user time: 0.000000
+
+    lib:
+
+Wykonanie: "copy"
+real time: 0.010000
+system time: 0.000000
+user time: 0.000000
+
+sort
+    sys:
+
+Wykonanie: "sort"
+real time: 0.360000
+system time: 0.300000
+user time: 0.050000
+
+    lib:
+
+Wykonanie: "sort"
+real time: 0.440000
+system time: 0.350000
+user time: 0.070000
+
+
+
+
+-Rozmiar rekordu 512 bajtów, ilość rekordów: 75000
+copy
+    sys:
+
+Wykonanie: "copy"
+real time: 0.240000
+system time: 0.100000
+user time: 0.000000
+
+    lib:
+
+Wykonanie: "copy"
+real time: 0.080000
+system time: 0.030000
+user time: 0.000000
+
+sort
+    sys:
+
+Wykonanie: "sort"
+real time: 3.040000
+system time: 2.600000
+user time: 0.430000
+
+    lib:
+
+Wykonanie: "sort"
+real time: 4.400000
+system time: 3.310000
+user time: 1.080000
+
+-Rozmiar rekordu 1024 bajtów, ilość rekordów: 10000
+copy
+    sys:
+
+Wykonanie: "copy"
+real time: 0.050000
+system time: 0.050000
+user time: 0.000000
+
+    lib:
+
+Wykonanie: "copy"
+real time: 0.010000
+system time: 0.010000
+user time: 0.000000
+
+sort
+    sys:
+
+Wykonanie: "sort"
+real time: 0.360000
+system time: 0.270000
+user time: 0.080000
+
+    lib:
+
+Wykonanie: "sort"
+real time: 0.410000
+system time: 0.300000
+user time: 0.100000
+
+-Rozmiar rekordu 1024 bajtów, ilość rekordów: 100000
+copy
+    sys:
+
+Wykonanie: "copy"
+real time: 0.190000
+system time: 0.160000
+user time: 0.010000
+
+    lib:
+
+Wykonanie: "copy"
+real time: 0.090000
+system time: 0.080000
+user time: 0.000000
+
+sort
+    sys:
+
+Wykonanie: "sort"
+real time: 4.380000
+system time: 3.660000
+user time: 0.710000
+
+    lib:
+
+Wykonanie: "sort"
+real time: 5.460000
+system time: 4.120000
+user time: 1.290000
+
+-Rozmiar rekordu 4096 bajtów, ilość rekordów: 10000
+copy
+    sys:
+
+Wykonanie: "copy"
+real time: 0.050000
+system time: 0.030000
+user time: 0.000000
+
+    lib:
+
+Wykonanie: "copy"
+real time: 0.050000
+system time: 0.040000
+user time: 0.000000
+
+sort
+    sys:
+
+Wykonanie: "sort"
+real time: 0.500000
+system time: 0.450000
+user time: 0.040000
+
+    lib:
+
+Wykonanie: "sort"
+real time: 0.530000
+system time: 0.440000
+user time: 0.080000
+
+-Rozmiar rekordu 4096 bajtów, ilość rekordów: 50000
+copy
+    sys:
+
+Wykonanie: "copy"
+real time: 0.420000
+system time: 0.270000
+user time: 0.000000
+
+    lib:
+
+Wykonanie: "copy"
+real time: 0.300000
+system time: 0.270000
+user time: 0.020000
+
+sort
+    sys:
+
+Wykonanie: "sort"
+real time: 3.250000
+system time: 2.760000
+user time: 0.480000
+
+    lib:
+
+Wykonanie: "sort"
+real time: 3.380000
+system time: 2.770000
+user time: 0.610000
+
+-Rozmiar rekordu 8192 bajty, ilość rekordów: 20000
+copy
+    lib:
+
+Wykonanie: "copy"
+real time: 0.120000
+system time: 0.100000
+user time: 0.000000
+
+    sys:
+
+Wykonanie: "copy"
+real time: 0.110000
+system time: 0.110000
+user time: 0.000000
+
+sort
+    lib:
+
+Wykonanie: "sort"
+real time: 1.940000
+system time: 1.610000
+user time: 0.330000
+
+    sys:
+
+Wykonanie: "sort"
+real time: 1.930000
+system time: 1.570000
+user time: 0.310000
+
+-Rozmiar rekordu 8192 bajty, ilość rekordów: 40000
+copy
+    lib:
+
+Wykonanie: "copy"
+real time: 0.350000
+system time: 0.340000
+user time: 0.000000
+
+    sys:
+  
+Wykonanie: "copy"
+real time: 0.270000
+system time: 0.260000
+user time: 0.000000
+
+sort
+    lib:
+
+Wykonanie: "sort"
+real time: 4.990000
+system time: 4.130000
+user time: 0.800000
+    sys:
+
+Wykonanie: "sort"
+real time: 4.060000
+system time: 3.570000
+user time: 1.460000
+
+Wnioski:
+Podczas testów operacja kopiowania pliku zawsze wykonywała się szybciej podczas wykorzystywania funkcji bibliotecznych. Z kolei operacja sortowania przebiega szybciej podczas korzystania z funkcji systemowych, niż przy wykorzystaniu funkcji bibliotecznych.
+
+
