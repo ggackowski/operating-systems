@@ -4,13 +4,13 @@
 #define MAX_SIZE 200
 #define offset 2 * sizeof(int)
 
-void set_value(FILE * file, int cols, int rows, float value, unsigned int r, unsigned int c)
+void write_value(FILE * file, int cols, int rows, float value, unsigned int r, unsigned int c)
 {
     fseek(file, sizeof(int) + (cols * r + c) * sizeof(float), 0);
     fwrite(&value, sizeof(float), 1, file);
 }
 
-float get_value(FILE * file, int rows, int cols, unsigned int r, unsigned int c)
+float read_value(FILE * file, int rows, int cols, unsigned int r, unsigned int c)
 {
     float value;
     fseek(file, sizeof(int) + (cols * r + c) * sizeof(float), 0);
@@ -18,14 +18,14 @@ float get_value(FILE * file, int rows, int cols, unsigned int r, unsigned int c)
     return value;
 }
 
-void print_matrix(FILE * file, int rows, int cols)
+void show_matrix(FILE * file, int rows, int cols)
 {
     float v;
     for (unsigned int r = 0; r < rows; r++)
     {
         for (unsigned int c = 0; c < cols; c++)
         {
-            v = get_value(file,rows, cols, r, c);
+            v = read_value(file,rows, cols, r, c);
             printf("%f ", v);
         }
         printf("\n");
@@ -44,8 +44,8 @@ int main(int argc, char ** argv) {
     fscanf(f, "%s", matrix2_filename);
     fscanf(f, "%s", matrix_res_filename);
     FILE * a = fopen(matrix1_filename, "r+");
-    print_matrix(a, 3, 3);
-    set_value(a, 3, 3, 1.3, 1, 1);
+    show_matrix(a, 3, 3);
+    write_value(a, 3, 3, 1.3, 1, 1);
     int num_of_processes = atoi(argv[2]);
     pid_t * PIDs = calloc(num_of_processes, sizeof(pid_t));
 
