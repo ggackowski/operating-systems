@@ -72,7 +72,9 @@ int main(int argc, char ** argv) {
             else {
                 for (int i = 0; i < usr1_cnt; ++i) {
                  if (sigq == 1) {
+                    while (wwait);
                     sigqueue(sender_pid, SIGUSR1, (union sigval) (i + 1));
+                    wwait = 1;
                 }
                 else {
                     while (wwait);
