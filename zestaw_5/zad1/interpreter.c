@@ -40,7 +40,7 @@ int main(int argc, char ** argv) {
 
             int i = 0;
             char * prog_name;
-            char ** args = calloc(MAX_ARGS, sizeof(char *));
+            char ** args = calloc(MAX_ARGS + 1, sizeof(char *));
             char * word = strtok(comms[k], " ");
             while (word) {
             //printf("word: %s\n", word);
@@ -49,17 +49,17 @@ int main(int argc, char ** argv) {
                     strcpy(prog_name, word);
                 }
                 else {
-                    args[i - 1] = calloc(strlen(word), sizeof(char)) ;   
-                    strcpy(args[i - 1], word);
+                    args[i] = calloc(strlen(word), sizeof(char)) ;   
+                    strcpy(args[i], word);
                 }
                 ++i;
                 word = strtok(NULL, " ");
             }
-            printf("Program name: %s\n", prog_name);
-            printf("args:");
-            for (int i = 0; i < MAX_ARGS; ++i)
-                printf(" %s", args[i]);
-            printf("\n");
+           // printf("Program name: %s\n", prog_name);
+            //printf("args:");
+          //  for (int i = 0; i < MAX_ARGS; ++i)
+           //     printf(" %s", args[i]);
+          //  printf("\n");
             int fd1[2];
             int fd2[2];
             pipe(fd1);
@@ -83,7 +83,7 @@ int main(int argc, char ** argv) {
                 }
                 close(fd1[1]);
                 read(fd1[0], buff, 100);
-                printf("::%s\n", buff);
+                printf("%s\n", buff);
                 
             }
             k++;
@@ -92,7 +92,6 @@ int main(int argc, char ** argv) {
         while (!good) {
             good = 1;
             for (int j = 0; j < k; ++j) {
-                int status;
                 if (!wait(NULL))
                     good = 0;
             }
