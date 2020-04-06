@@ -6,28 +6,21 @@
 #include <sys/stat.h>
 
 int main(int argc, char ** argv) {
-
     mkfifo("test_fifo", 666);
     printf("did fifo\n");
-    if (fork() == 0) {
-        printf("did konsument\n");
-        execl("consumer", "1", "test_fifo", "wynik", "6", (char *) NULL);
-    }
-    if (fork() == 0) {
+    if (fork() == 0) 
+        execl("consumer", "1", "test_fifo", "wynik", "6", NULL);
+    if (fork() == 0) 
         execl("producent", "1", "test_fifo" ,"plik1", "3", NULL);
-    }
-    if (fork() == 0) {
+    if (fork() == 0) 
         execl("producent", "1", "test_fifo" ,"plik2", "1", NULL);
-    }
-    if (fork() == 0) {
+    if (fork() == 0) 
         execl("producent", "1", "test_fifo" ,"plik3", "7", NULL);
-    }
-    if (fork() == 0) {
+    if (fork() == 0) 
         execl("producent", "1", "test_fifo" ,"plik4", "5", NULL);
-    }
-    if (fork() == 0) {
+    if (fork() == 0) 
         execl("producent", "1", "test_fifo" ,"plik5", "6", NULL);
-    }
+
     int good = 0;
     while (!good) {
         good = 1;
@@ -36,6 +29,4 @@ int main(int argc, char ** argv) {
                 good = 0;
         }
     }
-    printf("did all\n");
-    
 }
