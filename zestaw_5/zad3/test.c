@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 
 int main(int argc, char ** argv) {
-    mkfifo("test_fifo", 666);
+    mkfifo("test_fifo", S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     printf("did fifo\n");
     if (fork() == 0) 
         execl("consumer", "1", "test_fifo", "wynik", "6", NULL);
@@ -20,7 +20,7 @@ int main(int argc, char ** argv) {
         execl("producent", "1", "test_fifo" ,"plik4", "5", NULL);
     if (fork() == 0) 
         execl("producent", "1", "test_fifo" ,"plik5", "6", NULL);
-
+ 
     int good = 0;
     while (!good) {
         good = 1;

@@ -4,4 +4,4 @@ all:	producent.c consumer.c
 
 test: test.c
 	gcc -Wall test.c -o test
-	all
+	
