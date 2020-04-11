@@ -3,7 +3,7 @@
 #include <unistd.h>
 
 int main(int argc, char ** argv) {
-    fflush(stdout);
-    printf("%d\n", atoi(argv[1]) + atoi(argv[2]));
+    //printf("1");
+    printf("%d", atoi(argv[0]) + atoi(argv[1]));
     fflush(stdout);
 }

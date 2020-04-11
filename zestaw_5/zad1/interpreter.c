@@ -55,11 +55,11 @@ int main(int argc, char ** argv) {
                 ++i;
                 word = strtok(NULL, " ");
             }
-           // printf("Program name: %s\n", prog_name);
+            //printf("Program name: %s\n", prog_name);
             //printf("args:");
-          //  for (int i = 0; i < MAX_ARGS; ++i)
-           //     printf(" %s", args[i]);
-          //  printf("\n");
+            //for (int i = 0; i < MAX_ARGS; ++i)
+            //    printf(" %s", args[i]);
+            //printf("\n");
             int fd1[2];
             int fd2[2];
             pipe(fd1);
@@ -73,7 +73,7 @@ int main(int argc, char ** argv) {
                 }
                 close(fd1[0]);
                 dup2(fd1[1], STDOUT_FILENO);
-                execv(prog_name, args);
+                execv(prog_name, args + 1);
                 return 0;
             }
             else {

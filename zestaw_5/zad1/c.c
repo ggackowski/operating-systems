@@ -3,7 +3,7 @@
 #include <unistd.h>
 
 int main() {
-    char buff1[100], buff2[100];
+    char buff1[100];
     scanf("%s", buff1);
-    printf("|%s_%s|", buff1);
+    printf("|%s|", buff1);
 }
