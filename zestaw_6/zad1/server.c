@@ -27,7 +27,7 @@ void send_mess(int queue, char * message) {
     msgbuf mesbuf;
     mesbuf.mtype = 1;
     strcpy(mesbuf.mtext, message);
-    msgsnd(queue, &mesbuf, sizeof(message), IPC_NOWAIT);
+    msgsnd(queue, &mesbuf, sizeof(mesbuf.mtext), IPC_NOWAIT);
 }
 
 char * get_mess(int queue) {
