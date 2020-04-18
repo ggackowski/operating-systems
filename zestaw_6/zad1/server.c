@@ -23,8 +23,22 @@ int show_err(char * where) {
     return 0;
 }
 
+void send_mess(int queue, char * message) {
+    msgbuf mesbuf;
+    mesbuf.mtype = 1;
+    strcpy(mesbuf.mtext, message);
+    msgsnd(queue, &mesbuf, sizeof(message), IPC_NOWAIT);
+}
+
+char * get_mess(int queue) {
+    msgbuf * response = calloc(1, sizeof(msgbuf));
+    response->mtype = 1;
+    msgrcv(queue, response, sizeof(response->mtext), 0, MSG_NOERROR | IPC_NOWAIT);
+    return response->mtext;
+}
+
 int main(int argc, char ** argv) {
-    key_t key = ftok(getenv("HOME"), 1);
+    key_t key = ftok(getenv("HOME"), 1411);
     
     show_err("Key create error");
     
@@ -33,23 +47,16 @@ int main(int argc, char ** argv) {
     show_err("Queue make error");
     
 
-    msgbuf message;
-    message.mtype = 1;
-    strcpy(message.mtext, "test komunikatu");
-    
-    msgsnd(queue, &message, sizeof(message.mtext), IPC_NOWAIT);
+    send_mess(queue, "Komunikati");
 
     show_err("message send error");
 
 
-    msgbuf response;
-    response.mtype = 2;
-    
-    msgrcv(queue, &response, sizeof(response.mtext), 0, MSG_NOERROR | IPC_NOWAIT);
+    char * res = get_mess(queue);
     
     show_err("message receive error");
         
-    printf("%s\n", response.mtext);
+    printf("%s\n", res);
     
     msgctl(queue, IPC_RMID, NULL);
 
