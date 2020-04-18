@@ -52,6 +52,11 @@ msgbuf * get_mess(int queue) {
     return response;
 }
 
+void chat(int chat_id) {
+    int chat_queue = msgget(chat_id, IPC_CREAT | 0777);
+    
+}
+
 int main(int argc, char ** argv) {
     srand(time(NULL));
     signal(SIGINT, sigint);
@@ -77,7 +82,7 @@ int main(int argc, char ** argv) {
     char task[20];
 
     while (1) {
-        //sleep(1);
+        sleep(1);
         //printf("next\n");
         if (id != -1) {
             ready = 1;
@@ -91,19 +96,19 @@ int main(int argc, char ** argv) {
                 scanf("%s", additional);
                 send_named_mess(server_queue, additional, CONNECT);
             }
-            if (0 == strcmp(task, "LIST")) {
+            else if (0 == strcmp(task, "LIST")) {
                 send_named_mess(server_queue, task, LIST);
             }
-            if (0 == strcmp(task, "DISCONNECT")) {
+            else if (0 == strcmp(task, "DISCONNECT")) {
                 send_named_mess(server_queue, task, DISCONNECT);
             }
-            if (0 == strcmp(task, "STOP")) {
+            else if (0 == strcmp(task, "STOP")) {
                 send_named_mess(server_queue, task, STOP);
                 msgctl(queue, IPC_RMID, NULL);
                 exit(0);
             }
             else {
-               // continue;
+                continue;
             }
 
         }
@@ -116,10 +121,13 @@ int main(int argc, char ** argv) {
             else if (!ready) {
                 id = atoi(response->mtext);
 
-                send_named_mess(server_queue, "dziaua", LIST);
+                
             }
             if (ready) {
                 printf("\n%s\n", response->mtext);
+                if (response->mtype == CONNECT) {
+                    chat(atoi(response->mtext));
+                }
             }
         }
     }

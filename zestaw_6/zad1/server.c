@@ -67,7 +67,8 @@ int main(int argc, char ** argv) {
     signal(SIGINT, sigint);
 
     int users[MAX_CLIENTS];
-    for (int i = 0; i < MAX_CLIENTS; ++i) users[i] = 0;
+    int talks[MAX_CLIENTS];
+    for (int i = 0; i < MAX_CLIENTS; ++i)  {users[i] = 0; talks[i] = 0; }
 
 
     char * buff;
@@ -80,16 +81,14 @@ int main(int argc, char ** argv) {
     server_queue = msgget(server_key, IPC_CREAT | 0777);
     if (show_err("Queue make error")) return -1;
 
-    //send_mess(server_queue, "Komunikati", INIT);
-    //if (show_err("message send error")) return -1;
 
-    msgbuf * response; //= get_mess(server_queue);    
-    //if (show_err("message receive error")) return -1;
+    msgbuf * response; 
         
-    //printf("%s\n", response->mtext);
+  
     int client_id = -1;
+    int chat_id = -1;
     while (1) {
-        //sleep(1);
+
         response = get_mess(server_queue);
         if (errno == NO_MESSAGES);
         else if (show_err("message receive error")) return -1;
@@ -118,7 +117,7 @@ int main(int argc, char ** argv) {
                     buff = calloc(1024, sizeof(char));
                     for (int i = 0; i < MAX_CLIENTS; ++i) {
                         if (users[i] != 0) {
-                            if (i != client_id)
+                            if (i != client_id && talks[i] != 1)
                                 sprintf(num, "%d: 1 ", i);
                             else sprintf(num, "%d: 0 ", i);
                             strcat(buff, num);
@@ -128,7 +127,20 @@ int main(int argc, char ** argv) {
                     break;
 
                 case CONNECT:
-                    printf("konekts\n");
+                    get_named_mess(response->mtext, &client_id);
+                    chat_id = atoi(response->mtext);
+                    printf("konekts %d with %d\n", client_id, chat_id);
+                    if (client_id == chat_id || chat_id < 0) {
+                        printf("occupied\n");
+                        send_mess(users[client_id], "occupied", 1);
+                    }
+                    else {
+                        printf("convo started\n");
+                        sprintf(num, "%d", users[chat_id]);
+                        send_mess(users[client_id], num, CONNECT);
+                        sprintf(num, "%d", users[client_id]);
+                        send_mess(users[chat_id], num, CONNECT);
+                    }
                     break;
 
                 case DISCONNECT:
