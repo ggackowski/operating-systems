@@ -13,13 +13,19 @@
 #include "definitions.h"
 
 int server_queue;
-
+int users[MAX_CLIENTS];
+int talks[MAX_CLIENTS];
 typedef struct {
     long mtype;
     char mtext[100];
 } msgbuf;
 
 void sigint(int s) {
+    char task[10];
+    strcpy(task, "task");
+    for (int i = 0; i < MAX_CLIENTS; ++i) {
+        id (u)
+    }
     msgctl(server_queue, IPC_RMID, NULL);
     exit(0);
 }
@@ -66,8 +72,7 @@ int main(int argc, char ** argv) {
 
     signal(SIGINT, sigint);
 
-    int users[MAX_CLIENTS];
-    int talks[MAX_CLIENTS];
+    
     for (int i = 0; i < MAX_CLIENTS; ++i)  {users[i] = 0; talks[i] = 0; }
 
 
@@ -109,7 +114,7 @@ int main(int argc, char ** argv) {
                             break;
                         }
                     }
-                    printf("got init");
+                    printf("got init\n");
                     break;
 
                 case LIST:
@@ -145,12 +150,16 @@ int main(int argc, char ** argv) {
 
                 case DISCONNECT:
                     printf("disconnect\n");
+                    get_named_mess(response->mtext, &client_id);
+                    talks[client_id] = 0;
+
                     break;
 
                 case STOP:
                     get_named_mess(response->mtext, &client_id);
                     printf("user %d has logged out\n", client_id); 
                     users[client_id] = 0;
+                    talks[client_id] = 0;
                     break;
 
                 default:
