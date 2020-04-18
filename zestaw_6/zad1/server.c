@@ -20,15 +20,7 @@ typedef struct {
     char mtext[100];
 } msgbuf;
 
-void sigint(int s) {
-    char task[10];
-    strcpy(task, "task");
-    for (int i = 0; i < MAX_CLIENTS; ++i) {
-        id (u)
-    }
-    msgctl(server_queue, IPC_RMID, NULL);
-    exit(0);
-}
+
 
 int show_err(char * where) {
     if (errno) {
@@ -58,9 +50,21 @@ msgbuf * get_mess(int queue) {
     return response;
 }
 
+void sigint(int s) {
+    char task[10];
+    strcpy(task, "task");
+    for (int i = 0; i < MAX_CLIENTS; ++i) {
+        if (users[i] != 0) {
+            send_mess(users[i], task, DISCONNECT);
+        }
+    }
+    msgctl(server_queue, IPC_RMID, NULL);
+    exit(0);
+}
+
 char * get_named_mess(char * mess, int * _id) {
     char delim[2] = "|";
-    char * tmp;
+    char * tmp = calloc(20, sizeof(char));
     tmp = strtok(mess, delim);
     *_id = atoi(tmp);
     tmp = strtok(NULL, mess);
@@ -108,13 +112,13 @@ int main(int argc, char ** argv) {
                             if (show_err("users i kolejak")) return -1;
                             char mess[100];
                             strcpy(mess, string(i));
-                            printf("%s\n", mess);
+                            //printf("%s\n", mess);
                             send_mess(users[i], mess, 1);
                             if (show_err("przesyl err")) return -1;
                             break;
                         }
                     }
-                    printf("got init\n");
+                    //printf("got init\n");
                     break;
 
                 case LIST:
@@ -132,30 +136,33 @@ int main(int argc, char ** argv) {
                     break;
 
                 case CONNECT:
+               
                     get_named_mess(response->mtext, &client_id);
                     chat_id = atoi(response->mtext);
-                    printf("konekts %d with %d\n", client_id, chat_id);
-                    if (client_id == chat_id || chat_id < 0) {
-                        printf("occupied\n");
-                        send_mess(users[client_id], "occupied", 1);
+                    //printf("konekts %d with %d\n", client_id, chat_id);
+                    if (client_id == chat_id) {
+                       
                     }
-                    else {
+                    else if (users[chat_id] && !talks[chat_id]) {
                         printf("convo started\n");
                         sprintf(num, "%d", users[chat_id]);
                         send_mess(users[client_id], num, CONNECT);
                         sprintf(num, "%d", users[client_id]);
                         send_mess(users[chat_id], num, CONNECT);
+                        talks[chat_id] = 1;
+                        talks[client_id] = 1; 
                     }
                     break;
 
                 case DISCONNECT:
-                    printf("disconnect\n");
+                    
                     get_named_mess(response->mtext, &client_id);
+                    printf("%d disconnected\n", client_id);
                     talks[client_id] = 0;
-
                     break;
 
                 case STOP:
+
                     get_named_mess(response->mtext, &client_id);
                     printf("user %d has logged out\n", client_id); 
                     users[client_id] = 0;
@@ -163,7 +170,7 @@ int main(int argc, char ** argv) {
                     break;
 
                 default:
-                    printf("inny");
+                    printf("err");
                     break;
             }
         }

@@ -21,8 +21,6 @@ typedef struct {
     char mtext[100];
 } msgbuf;
 
-
-
 int show_err(char * where) {
     if (errno) {
         printf("%s: %s\n", where, strerror(errno));
@@ -65,12 +63,12 @@ void chat() {
     struct msqid_ds buf;
     int num_messages;
     
-    printf("polaczony %d z %d\n", queue, chat_id);
-    printf("WELCOME\n\n");
+    printf("Now chatting with %d\n[write \\end to end conversation]\n", chat_id);
+
     msgbuf * msg;
     int enter = 0;
     int end = 0;
-
+    char txt[100];
     do {
         
         msgctl(queue, IPC_STAT, &buf);
@@ -83,7 +81,7 @@ void chat() {
             enter = 0;
             msg = get_mess(queue);
             if (msg->mtype == DISCONNECT) {
-                send_mess(chat_id, msg->mtext, DISCONNECT);
+                send_named_mess(server_queue, txt, DISCONNECT);
                 end = 1;
                 break;
             }
@@ -99,12 +97,19 @@ void chat() {
                 enter = 1;
             }
 
-            char txt[100];
+            
         
             scanf("%s", txt);
 
-            if (strcmp(txt, "\\?"))
+            
+            if (strcmp(txt, "\\end") == 0) {
+                send_mess(chat_id, txt, DISCONNECT);
+                send_named_mess(server_queue, txt, DISCONNECT);
+                end = 1;
+            }
+            else if (strcmp(txt, "\\?"))
                 send_mess(chat_id, txt, CONNECT);
+
         }
         
 
@@ -139,20 +144,17 @@ int main(int argc, char ** argv) {
     int ready = 0;
     char additional[20];
     char task[20];
-    //int fk = 0;
 
     while (1) {
-        //sleep(1);
-        //printf("next\n");
+
         if (id != -1) {
             ready = 1;
         }
         if (ready) {
         
-                printf("client %d $ ", id);
-                scanf("%s", task);
+            printf("client %d $ ", id);
+            scanf("%s", task);
                 
-               
             
             if (0 == strcmp(task, "CONNECT")) {
                 scanf("%s", additional);
@@ -165,33 +167,31 @@ int main(int argc, char ** argv) {
                 send_named_mess(server_queue, task, DISCONNECT);
             }
             else if (0 == strcmp(task, "STOP")) {
-               // sigint(0);
                 send_named_mess(server_queue, task, STOP);
                 msgctl(queue, IPC_RMID, NULL);
                 exit(0);
             }
-            else {
-                //continue;
-            }
             
-
         }
         sleep(1);
         msgctl(queue, IPC_STAT, &buf);
         num_messages = buf.msg_qnum;
         while (num_messages > 0) {
-            //printf("nm: %d\n", num_messages);
+
             msgbuf * response;
             response = get_mess(queue);
             msgctl(queue, IPC_STAT, &buf);
             num_messages = buf.msg_qnum;
-            //printf("r: %s\n", response->mtext);
+
+            if (response->mtype == DISCONNECT) { 
+                printf("server is down\n");
+                sigint(0);
+            }
                         
-             if (!ready) {
-                  id = atoi(response->mtext); 
-                  printf("id %d\n", id);               
-              }
-             if (ready) {
+             if (!ready) 
+                  id = atoi(response->mtext);             
+              
+             else {
                   printf("\n%s\n", response->mtext);
                     if (response->mtype == CONNECT) {
                         chat_id = atoi(response->mtext);
@@ -200,9 +200,7 @@ int main(int argc, char ** argv) {
                 }
         }
         
-        
     }
-
     
     msgctl(queue, IPC_RMID, NULL);
     kill(0, SIGTERM);
