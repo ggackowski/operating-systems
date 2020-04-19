@@ -11,11 +11,16 @@
 #include <time.h>
 #include <errno.h>
 #include "definitions.h"
+#include <mqueue.h>
 
-int server_queue;
-int chat_id;
-int queue;
+mqd_t server_queue;
+mqd_t chat_id;
+mqd_t queue;
+
+char * queue_name;
+
 int id = -1;
+
 typedef struct {
     long mtype;
     char mtext[100];
@@ -29,14 +34,14 @@ int show_err(char * where) {
     return 0;
 }
 
-void send_mess(int queue, char * message, int mess_type) {
-    msgbuf mesbuf;
-    mesbuf.mtype = mess_type;
-    strcpy(mesbuf.mtext, message);
-    msgsnd(queue, &mesbuf, sizeof(mesbuf.mtext), 0);
+void send_mess(mqd_t queue, char * message, int mess_type) {
+    char mess[MESSAGE_LEN];
+    sprintf(mess, "%c%s", (char)mess_type, message);
+    //printf("I sent %s\n", mess);
+    mq_send(queue, mess, MESSAGE_LEN, 1);
 }
 
-void send_named_mess(int queue, char * message, int mess_type) {
+void send_named_mess(mqd_t queue, char * message, int mess_type) {
     char * m = calloc(100, sizeof(char));
     sprintf(m, "%d|%s", id, message);
     send_mess(queue, m, mess_type);
@@ -47,21 +52,32 @@ void sigint(int s) {
     strcpy(task, "stop");
     send_mess(chat_id, task, DISCONNECT);
     send_named_mess(server_queue, task, STOP);
-    msgctl(queue, IPC_RMID, NULL);
+    mq_close(queue);
+    mq_unlink(queue_name);
     exit(0);
 }
 
-msgbuf * get_mess(int queue) {
+msgbuf * get_mess(mqd_t queue) {
     msgbuf * response = calloc(1, sizeof(msgbuf));
-    response->mtype = 1;
-    msgrcv(queue, response, sizeof(response->mtext), 0, MSG_NOERROR);
+    char receive[MESSAGE_LEN + 10];
+    unsigned pri;
+    mq_receive(queue, receive, MESSAGE_LEN + 10, &pri);
+    response->mtype = receive[0];
+    sprintf(response->mtext, "%s", receive + 1);
+
     return response;
+}
+
+int has_messages(mqd_t queue) {
+    struct mq_attr queue_info;
+    mq_getattr(queue, &queue_info);
+    return queue_info.mq_curmsgs;
 }
 
 void chat() {
 
-    struct msqid_ds buf;
-    int num_messages;
+
+
     
     printf("Now chatting with %d\n[write \\end to end conversation]\n", chat_id);
 
@@ -71,13 +87,11 @@ void chat() {
     char txt[100];
     do {
         
-        msgctl(queue, IPC_STAT, &buf);
-        num_messages = buf.msg_qnum;
         
-        if (num_messages > 0)
+        if (has_messages(queue))
             printf(":: ");
 
-        while (num_messages > 0) {
+        while (has_messages(queue)) {
             enter = 0;
             msg = get_mess(queue);
             if (msg->mtype == DISCONNECT) {
@@ -85,8 +99,7 @@ void chat() {
                 end = 1;
                 break;
             }
-            msgctl(queue, IPC_STAT, &buf);
-            num_messages = buf.msg_qnum;
+            
             printf("%s ", msg->mtext);
 
         }
@@ -112,6 +125,7 @@ void chat() {
         
 
     } while (!end);
+    mq_close(chat_id);
 
 }
 
@@ -120,24 +134,28 @@ int main(int argc, char ** argv) {
     srand(time(NULL));
     signal(SIGINT, sigint);
 
-    struct msqid_ds buf;
-    int num_messages;
+    queue_name = calloc(NAME_SIZE, sizeof(char));
+    strcpy(queue_name, "/client");  //7 -> 16 -1 >> 15 - 7 = 8
+    for (int i = 7; i < NAME_SIZE - 1; ++i)
+        queue_name[i] =  (char)('A' + rand() % 10);
+    
 
-    key_t client_key = ftok(getenv("HOME"), rand() % (MAX_CLIENTS * 10));
-    if (show_err("Key create error")) return -1;
-
-    queue = msgget(client_key, IPC_CREAT | 0777);
+   
+    struct mq_attr queue_info;
+    queue_info.mq_maxmsg = MAXMSG;
+    queue_info.mq_msgsize = MESSAGE_LEN;
+    queue = mq_open(queue_name, O_RDWR | O_CREAT, 0666, &queue_info);
     if (show_err("Queue make error")) return -1;
     
-    int server_key = atoi(argv[1]);
   
-    server_queue = msgget(server_key, IPC_CREAT | 0777);
+  
+    server_queue = mq_open(argv[1], O_RDWR);
     if (show_err("Error opening server queue")) return -1;
 
-    char queue_key[100];
-    sprintf(queue_key, "%d", client_key);
+    //char queue_key[100];
+    //sprintf(queue_key, "%d", client_key);
 
-    send_mess(server_queue, queue_key, INIT);
+    send_mess(server_queue, queue_name, INIT);
     if (show_err("Error sending message to server queue")) return -1;
     int ready = 0;
     char additional[20];
@@ -166,20 +184,18 @@ int main(int argc, char ** argv) {
             }
             else if (0 == strcmp(task, "STOP")) {
                 send_named_mess(server_queue, task, STOP);
-                msgctl(queue, IPC_RMID, NULL);
+                mq_close(queue);
+                mq_unlink(queue_name);
                 exit(0);
             }
             
         }
         sleep(1);
-        msgctl(queue, IPC_STAT, &buf);
-        num_messages = buf.msg_qnum;
-        while (num_messages > 0) {
+        
+        while (has_messages(queue) > 0) {
 
             msgbuf * response;
             response = get_mess(queue);
-            msgctl(queue, IPC_STAT, &buf);
-            num_messages = buf.msg_qnum;
 
             if (response->mtype == DISCONNECT) { 
                 printf("server is down\n");
@@ -191,7 +207,9 @@ int main(int argc, char ** argv) {
               
              else {
                  if (response->mtype == CONNECT) {
-                    chat_id = atoi(response->mtext);
+                    char chat_name[NAME_SIZE];
+                    strcpy(chat_name, response->mtext);
+                    chat_id = mq_open(chat_name, O_RDWR);
                     chat();
                 }
                 else
@@ -202,6 +220,8 @@ int main(int argc, char ** argv) {
         
     }
     
-    msgctl(queue, IPC_RMID, NULL);
+    mq_close(queue);
+    mq_close(server_queue);
+    mq_unlink(queue_name);
 
 }
