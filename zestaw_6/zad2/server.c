@@ -63,6 +63,7 @@ void sigint(int s) {
     for (int i = 0; i < MAX_CLIENTS; ++i) {
         if (users_qdesc[i] != 0) {
             send_mess(users_qdesc[i], task, DISCONNECT);
+            mq_close(users_qdesc[i]);
         }
     }
     mq_close(server_queue);

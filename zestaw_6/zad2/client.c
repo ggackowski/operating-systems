@@ -37,8 +37,7 @@ int show_err(char * where) {
 void send_mess(mqd_t queue, char * message, int mess_type) {
     char mess[MESSAGE_LEN];
     sprintf(mess, "%c%s", (char)mess_type, message);
-    //printf("I sent %s\n", mess);
-    mq_send(queue, mess, MESSAGE_LEN, 1);
+    mq_send(queue, mess, MESSAGE_LEN, mess_type);
 }
 
 void send_named_mess(mqd_t queue, char * message, int mess_type) {
@@ -79,7 +78,7 @@ void chat() {
 
 
     
-    printf("Now chatting with %d\n[write \\end to end conversation]\n", chat_id);
+    printf("Now chatting \n[write \\end to end conversation]\n");
 
     msgbuf * msg;
     int enter = 0;

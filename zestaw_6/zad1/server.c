@@ -45,7 +45,7 @@ void send_mess(int queue, char * message, int mess_type) {
 
 msgbuf * get_mess(int queue) {
     msgbuf * response = calloc(1, sizeof(msgbuf));
-    response->mtype = 1;
+    response->mtype = -6;
     msgrcv(queue, response, sizeof(response->mtext), 0, MSG_NOERROR);
     return response;
 }
