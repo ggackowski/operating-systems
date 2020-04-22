@@ -25,8 +25,13 @@
 typedef char * string;
 
 typedef struct {
+    int size;
+    int status;
+} order;
+
+typedef struct {
     int id;
-    int array at;
+    order array at;
     key_t key;
     size_t size;
 } shared_memory;

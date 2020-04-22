@@ -9,8 +9,8 @@ string string_copy(string str) {
 
 shared_memory ptr create_shared_memory(size_t size) {
     key_t key = ftok(getenv("HOME"), rand() % 256);
-    int id = shmget(key, size, IPC_CREAT | 0666);
-    int array arr = shmat(id, NULL, 0);
+    int id = shmget(key, size * sizeof(order), IPC_CREAT | 0666);
+    order array arr = shmat(id, NULL, 0);
     shared_memory ptr shr_mem = new (shared_memory, 1);
     shr_mem->key = key;
     shr_mem->at = arr;
@@ -21,7 +21,7 @@ shared_memory ptr create_shared_memory(size_t size) {
 
 shared_memory ptr open_shared_memory(key_t key, size_t size) {
     int id = shmget(key, 0, 0666);
-    int array arr = shmat(id, NULL, 0);
+    order array arr = shmat(id, NULL, 0);
     shared_memory ptr shr_mem = new (shared_memory, 1);
     shr_mem->key = key;
     shr_mem->at = arr;

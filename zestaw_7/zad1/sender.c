@@ -26,19 +26,21 @@ int main(int argc, string array argv) {
     printf("id: %d\n", arr->id);
 
     while (1) {
+        int n;
+
+        for (int i = 0; i < arr->size; ++i) {
+            if (arr->at[i].status == PACK) {
+                n = arr->at[i].size * 3;
+                arr->at[i].size = arr->at[i].status = 0;
+                break;
+            }
+        }
+
         pid_t pid = getpid();
-        int n = rand() % 10;
         int m = count_make(arr);
         int x = count_pack(arr);
         
-        printf("(%d time) Dodalem liczbe: %d. Liczba zamownien do przygotowania: %d. Liczba zamownien do wyslania: %d\n", pid, n, m, x);
-        
-
-        arr->at[arr->at[0].size].status = MAKE;
-        arr->at[arr->at[0].size].size = n;
-        arr->at[0].size++;
-        arr->at[0].size %= arr->size;
-        arr->at[0].size++;
+        printf("(%d time) Wyslalem zamowienie o wielkosci: %d. Liczba zamownien do przygotowania: %d. Liczba zamownien do wyslania: %d\n", pid, n, m, x);
 
         sleep(1);
     }
