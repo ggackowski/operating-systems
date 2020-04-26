@@ -60,8 +60,8 @@ semaphores * create_semaphore_set(int nsems) {
 
 semaphores * open_semaphore_set(key_t key, int size) {
     int id = semget(key, 0, 0666);
-    printf("id: %d\n", id);
-    printf("%s\n", strerror(errno));
+    //printf("id: %d\n", id);
+    //printf("%s\n", strerror(errno));
     semaphores * sems = new (semaphores, 1);
     sems->id = id;
     sems->key = key;

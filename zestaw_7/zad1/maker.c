@@ -6,6 +6,14 @@
 #include <stdlib.h>
 #include <time.h>
 #include <signal.h>
+#include <time.h>
+
+
+long int now() {
+    struct timespec ts;
+    clock_gettime (CLOCK_MONOTONIC, &ts);
+    return  (ts.tv_sec * 1000000 + ts.tv_nsec / 1000);
+}
 
 shared_memory * arr;
 semaphores * sems;
@@ -48,7 +56,7 @@ int main(int argc, string array argv) {
     arr = open_shared_memory(atoi(argv[1]), MAX_ORDERS + 1);
     sems = open_semaphore_set(atoi(argv[2]), MAKERS + PACKERS + SENDERS);
     int semaf_id = atoi(argv[3]);
-    printf("sem id: %d\n", semaf_id);
+    //printf("sem id: %d\n", semaf_id);
     //printf("id: %d\n", arr->id); 2885812226 1157758978 
 
     while (1) {
@@ -58,8 +66,7 @@ int main(int argc, string array argv) {
         int n = rand() % 10;
         int m = count_make(arr);
         int x = count_pack(arr);
-        
-        printf("(%d time) Dodalem liczbe: %d. Liczba zamownien do przygotowania: %d. Liczba zamownien do wyslania: %d\n", pid, n, m, x);
+        printf("(%d %ld) Dodalem liczbe: %d. Liczba zamownien do przygotowania: %d. Liczba zamownien do wyslania: %d\n", pid, now(), n, m, x);
         
 
         arr->at[arr->at[0].size].status = MAKE;
@@ -71,7 +78,7 @@ int main(int argc, string array argv) {
 
 
         semaphore_increase(sems, semaf_id);
-        printf("increased\n");
+        //printf("increased\n");
         //sleep(1);
 
     }

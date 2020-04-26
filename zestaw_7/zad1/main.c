@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <signal.h>
 
+#define debug 1
 
 shared_memory * memory;
 semaphores * sems;
@@ -68,17 +69,17 @@ int main() {
     for (int i = 0; i < MAKERS; ++i) {
         makers[i] = j;
         sprintf(arguments[3], "%d", j++);
-        printf("ARG %s\n", arguments[3]);
+        //printf("ARG %s\n", arguments[3]);
         if (fork() == 0) {
             //printf("lol\n");
-           printf( "%d\n", execv("maker", arguments));
+            execv("maker", arguments);
             //printf("no\n");
         }
     }
 
     for (int i = 0; i < PACKERS; ++i) {
         sprintf(arguments[3], "%d", j++);
-        printf("ARG %s\n", arguments[3]);
+        //printf("ARG %s\n", arguments[3]);
         if (fork() == 0) {
             execv("packer", arguments);
         }
@@ -87,7 +88,7 @@ int main() {
 
     for (int i = 0; i < SENDERS; ++i) {
         sprintf(arguments[3], "%d", j++);
-        printf("ARG %s\n", arguments[3]);
+        //printf("ARG %s\n", arguments[3]);
         if (fork() == 0) {
             execv("sender", arguments);
         }
@@ -95,18 +96,8 @@ int main() {
     int worker_id = 0;
 
     while (1) {
-        printf("%d\n", getpid());
-        printf("{ ");
-        for (int i = 0; i < memory->size; ++i) {
-            printf("[%d (%d)] ", memory->at[i].size, memory->at[i].status);
-        }
-        printf("}\n");
-        for (int i = 0; i < sems->size; ++i) {
-            printf("[%d] ", get_semaphore_value(sems, i));
-        }
-        printf("\n");
+        //printf("%d\n", getpid());
         
-        sleep(1);
 
         if (memory->at[memory->at[0].size].status == 0) {
             worker_id++;
@@ -120,10 +111,19 @@ int main() {
             } while (in(makers, MAKERS, worker_id));
             semaphore_decrease(sems, worker_id);
         }
+        if (debug) {
+        printf("{ ");
+        for (int i = 0; i < memory->size; ++i) {
+            printf("[%d (%d)] ", memory->at[i].size, memory->at[i].status);
+        }
+        printf("}\n");
         for (int i = 0; i < sems->size; ++i) {
             printf("[%d] ", get_semaphore_value(sems, i));
         }
         printf("\n");
+        printf("\n");
+        }
+        sleep(1);
 
     }
     

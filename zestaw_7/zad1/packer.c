@@ -38,13 +38,19 @@ void wait(int sem_id) {
     semop(sems->id, bufs, 1);
 }
 
+long int now() {
+    struct timespec ts;
+    clock_gettime (CLOCK_MONOTONIC, &ts);
+    return  (ts.tv_sec * 1000000 + ts.tv_nsec / 1000);
+}
+
 int main(int argc, string array argv) {
     srand(time(NULL));
     signal(SIGINT, sigint);
     arr = open_shared_memory(atoi(argv[1]), MAX_ORDERS + 1);
     sems = open_semaphore_set(atoi(argv[2]), MAKERS + PACKERS + SENDERS);
     int semaf_id = atoi(argv[3]);
-    printf("sem id: %d\n", semaf_id);
+    //printf("sem id: %d\n", semaf_id);
 
 
     while (1) {
@@ -52,11 +58,12 @@ int main(int argc, string array argv) {
         wait(semaf_id);
         int n;
         int found = 0;
-        for (int i = arr->at[0].size; i < arr->size; ++i) {
-            if (arr->at[i].status == MAKE) {
+        for (int i = 0; i < arr->size; ++i) {
+            int k = (i + arr->at[0].size) % arr->size;
+            if (arr->at[k].status == MAKE) {
                 found = 1;
-                n = 2 * arr->at[i].size;
-                arr->at[i].status = PACK;
+                n = 2 * arr->at[k].size;
+                arr->at[k].status = PACK;
                 break;
             }
         }
@@ -67,11 +74,11 @@ int main(int argc, string array argv) {
             int m = count_make(arr);
             int x = count_pack(arr);
         
-            printf("(%d time) Przygotowalem zamowienie o wielkosci: %d. Liczba zamownien do przygotowania: %d. Liczba zamownien do wyslania: %d\n", pid, n, m, x);
+            printf("(%d %ld) Przygotowalem zamowienie o wielkosci: %d. Liczba zamownien do przygotowania: %d. Liczba zamownien do wyslania: %d\n", pid, now(), n, m, x);
         }
 
         semaphore_increase(sems, semaf_id);
-        printf("increased\n");
+        //printf("increased\n");
         //sleep(1);
     }
 }

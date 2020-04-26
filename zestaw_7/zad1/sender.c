@@ -38,6 +38,12 @@ void wait(int sem_id) {
     semop(sems->id, bufs, 1);
 }
 
+long int now() {
+    struct timespec ts;
+    clock_gettime (CLOCK_MONOTONIC, &ts);
+    return  (ts.tv_sec * 1000000 + ts.tv_nsec / 1000);
+}
+
 int main(int argc, string array argv) {
     srand(time(NULL));
     signal(SIGINT, sigint);
@@ -46,18 +52,19 @@ int main(int argc, string array argv) {
     sems = open_semaphore_set(atoi(argv[2]), MAKERS + PACKERS + SENDERS);
     //printf("id: %d\n", arr->id);
     int semaf_id = atoi(argv[3]);
-    printf("sem id: %d\n", semaf_id);
+//    printf("sem id: %d\n", semaf_id);
 
     while (1) {
         //printf("Czekam na semafor nr %d\n", semaf_id);
         wait(semaf_id);
         int n;
         int found = 0;
-        for (int i = arr->at[0].size; i < arr->size; ++i) {
-            if (arr->at[i].status == PACK) {
+        for (int i = 0; i < arr->size; ++i) {
+            int k = (i + arr->at[0].size) % arr->size;
+            if (arr->at[k].status == PACK) {
                 found = 1;
-                n = arr->at[i].size * 3;
-                arr->at[i].size = arr->at[i].status = 0;
+                n = arr->at[k].size * 3;
+                arr->at[k].size = arr->at[k].status = 0;
                 break;
             }
         }
@@ -67,12 +74,10 @@ int main(int argc, string array argv) {
             int m = count_make(arr);
             int x = count_pack(arr);
         
-            printf("(%d time) Wyslalem zamowienie o wielkosci: %d. Liczba zamownien do przygotowania: %d. Liczba zamownien do wyslania: %d\n", pid, n, m, x);
+            printf("(%d %ld) Wyslalem zamowienie o wielkosci: %d. Liczba zamownien do przygotowania: %d. Liczba zamownien do wyslania: %d\n", pid, now(), n, m, x);
         }
 
         semaphore_increase(sems, semaf_id);
-        printf("increased\n");
-        //sleep(1);
 
     }
 }
