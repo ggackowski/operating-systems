@@ -52,7 +52,7 @@ int main(int argc, string array argv) {
     //printf("id: %d\n", arr->id); 2885812226 1157758978 
 
     while (1) {
-        printf("Czekam na semafor nr %d\n", semaf_id);
+        //printf("Czekam na semafor nr %d\n", semaf_id);
         wait(semaf_id);
         pid_t pid = getpid();
         int n = rand() % 10;
@@ -65,13 +65,14 @@ int main(int argc, string array argv) {
         arr->at[arr->at[0].size].status = MAKE;
         arr->at[arr->at[0].size].size = n;
         arr->at[0].size++;
-        arr->at[0].size %= arr->size;
-        arr->at[0].size++;
+        arr->at[0].size %= arr->size; 
+        if (arr->at[0].size == 0)
+            arr->at[0].size++;
 
-        sleep(1);
 
         semaphore_increase(sems, semaf_id);
         printf("increased\n");
+        //sleep(1);
 
     }
 }

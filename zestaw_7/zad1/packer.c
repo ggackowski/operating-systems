@@ -42,28 +42,21 @@ int main(int argc, string array argv) {
     srand(time(NULL));
     signal(SIGINT, sigint);
     arr = open_shared_memory(atoi(argv[1]), MAX_ORDERS + 1);
-    sems = open_semaphore_set(atoi(argv[2]), MAX_ORDERS);
+    sems = open_semaphore_set(atoi(argv[2]), MAKERS + PACKERS + SENDERS);
     int semaf_id = atoi(argv[3]);
     printf("sem id: %d\n", semaf_id);
 
 
     while (1) {
-        printf("Czekam na semafor nr %d\n", semaf_id);
+        //printf("Czekam na semafor nr %d\n", semaf_id);
         wait(semaf_id);
         int n;
         int found = 0;
-        for (int i = 0; i < arr->size; ++i) {
+        for (int i = arr->at[0].size; i < arr->size; ++i) {
             if (arr->at[i].status == MAKE) {
                 found = 1;
-                //printf("Wstawiam do %d\n", arr->at[0].size);
-                arr->at[arr->at[0].size].status = PACK;
-                n = arr->at[i].size * 2;
-                arr->at[arr->at[0].size].size = n;
-                arr->at[0].size++;
-                arr->at[0].size %= arr->size;
-                if (arr->at[0].size == 0) arr->at[0].size++;
-                arr->at[i].status = 0;
-                arr->at[i].size = 0;
+                n = 2 * arr->at[i].size;
+                arr->at[i].status = PACK;
                 break;
             }
         }
@@ -77,8 +70,8 @@ int main(int argc, string array argv) {
             printf("(%d time) Przygotowalem zamowienie o wielkosci: %d. Liczba zamownien do przygotowania: %d. Liczba zamownien do wyslania: %d\n", pid, n, m, x);
         }
 
-        sleep(1);
         semaphore_increase(sems, semaf_id);
         printf("increased\n");
+        //sleep(1);
     }
 }

@@ -44,6 +44,7 @@ int main() {
 
     srand(time(NULL));
     memory = create_shared_memory(MAX_ORDERS + 1);
+    //printf("SSSSS %d\n\n", memory->size);
     sems = create_semaphore_set(workers);
 
     set_semaphores();
@@ -63,7 +64,9 @@ int main() {
     sprintf(arguments[2], "%d", sems->key);
     arguments[4] = NULL;
     //printf("%s %s %s\n", arguments[0], arguments[1], arguments[2]);
+    int makers[MAKERS];
     for (int i = 0; i < MAKERS; ++i) {
+        makers[i] = j;
         sprintf(arguments[3], "%d", j++);
         printf("ARG %s\n", arguments[3]);
         if (fork() == 0) {
@@ -81,10 +84,8 @@ int main() {
         }
     }
 
-    int senders[SENDERS];
 
     for (int i = 0; i < SENDERS; ++i) {
-        senders[i] = j;
         sprintf(arguments[3], "%d", j++);
         printf("ARG %s\n", arguments[3]);
         if (fork() == 0) {
@@ -116,9 +117,13 @@ int main() {
             do {
                 worker_id++;
                 worker_id %= workers;
-            } while (!in(senders, SENDERS, worker_id));
+            } while (in(makers, MAKERS, worker_id));
             semaphore_decrease(sems, worker_id);
         }
+        for (int i = 0; i < sems->size; ++i) {
+            printf("[%d] ", get_semaphore_value(sems, i));
+        }
+        printf("\n");
 
     }
     
