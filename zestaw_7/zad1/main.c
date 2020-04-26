@@ -2,13 +2,126 @@
 #include "definitions.h"
 
 #include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <signal.h>
+
+
+shared_memory * memory;
+semaphores * sems;
+int workers = PACKERS + MAKERS + SENDERS;
+
+void sigint(int s) {
+    kill(0, SIGINT);
+
+    delete_semaphore_set(sems);
+    close_shared_memory(memory);
+    delete_shared_memory(memory);
+    exit(0);
+}
+
+void set_semaphores() {
+    struct sembuf array bufs = new (struct sembuf, workers);
+    for (int i = 0; i < workers; ++i) {
+        bufs[i].sem_num = i;
+        bufs[i].sem_op = 1;
+    }
+    semop(sems->id, bufs, workers);
+    
+    
+}
+
+int in(int array cont, int size, int v) {
+    for (int i = 0; i < size; ++i) {
+        if (cont[i] == v) return 1;
+    }
+    return 0;
+}
 
 int main() {
+
+    signal(SIGINT, sigint);
+
     srand(time(NULL));
-    shared_memory ptr memory = create_shared_memory(MAX_ORDERS + 1);
+    memory = create_shared_memory(MAX_ORDERS + 1);
+    sems = create_semaphore_set(workers);
+
+    set_semaphores();
+    
+
     memory->at[0].size = 1;
     memory->at[0].status = -1;
-    printf("key: %d\n", memory->key);
+    
+    printf("key to mem: %d  key to sems: %d\n", memory->key, sems->key);
+    
+    string array arguments = new (string, 5);
+    for (int i = 0; i < 5; ++i) {
+        arguments[i] = new (char, 32);
+    }
+    int j = 0;
+    sprintf(arguments[1], "%d", memory->key);
+    sprintf(arguments[2], "%d", sems->key);
+    arguments[4] = NULL;
+    //printf("%s %s %s\n", arguments[0], arguments[1], arguments[2]);
+    for (int i = 0; i < MAKERS; ++i) {
+        sprintf(arguments[3], "%d", j++);
+        printf("ARG %s\n", arguments[3]);
+        if (fork() == 0) {
+            //printf("lol\n");
+           printf( "%d\n", execv("maker", arguments));
+            //printf("no\n");
+        }
+    }
+
+    for (int i = 0; i < PACKERS; ++i) {
+        sprintf(arguments[3], "%d", j++);
+        printf("ARG %s\n", arguments[3]);
+        if (fork() == 0) {
+            execv("packer", arguments);
+        }
+    }
+
+    int senders[SENDERS];
+
+    for (int i = 0; i < SENDERS; ++i) {
+        senders[i] = j;
+        sprintf(arguments[3], "%d", j++);
+        printf("ARG %s\n", arguments[3]);
+        if (fork() == 0) {
+            execv("sender", arguments);
+        }
+    }
+    int worker_id = 0;
+
+    while (1) {
+        printf("%d\n", getpid());
+        printf("{ ");
+        for (int i = 0; i < memory->size; ++i) {
+            printf("[%d (%d)] ", memory->at[i].size, memory->at[i].status);
+        }
+        printf("}\n");
+        for (int i = 0; i < sems->size; ++i) {
+            printf("[%d] ", get_semaphore_value(sems, i));
+        }
+        printf("\n");
+        
+        sleep(1);
+
+        if (memory->at[memory->at[0].size].status == 0) {
+            worker_id++;
+            worker_id %= workers;
+            semaphore_decrease(sems, worker_id);
+        }
+        else {
+            do {
+                worker_id++;
+                worker_id %= workers;
+            } while (!in(senders, SENDERS, worker_id));
+            semaphore_decrease(sems, worker_id);
+        }
+
+    }
+    
 }
 
 //1728184322

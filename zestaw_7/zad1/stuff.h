@@ -14,7 +14,6 @@
 
 
 #define array *
-#define ptr *
 #define length sizeof 
 
 
@@ -52,19 +51,19 @@ union semun {
 
 
 
-shared_memory ptr create_shared_memory(size_t size); 
-shared_memory ptr open_shared_memory(key_t key, size_t size);
-int close_shared_memory(shared_memory ptr sh_mem);
-void delete_shared_memory(shared_memory ptr sh_mem);
+shared_memory * create_shared_memory(size_t size); 
+shared_memory * open_shared_memory(key_t key, size_t size);
+int close_shared_memory(shared_memory * sh_mem);
+int delete_shared_memory(shared_memory * sh_mem);
 
-semaphores ptr create_semaphore_set(int nsems);
-semaphores ptr open_semaphore_set(key_t key, int size);
-void semaphore_execute(semaphores ptr sems, int op, int index, short flag);
-void semaphore_increase(semaphores ptr sems, int index);
-void semaphore_decrease(semaphores ptr sems, int index);
-void wait_for_semaphore(semaphores ptr sems, int index);
-int get_semaphore_value(semaphores ptr sems, int index);
-void delete_semaphore_set(semaphores ptr sems);
+semaphores * create_semaphore_set(int nsems);
+semaphores * open_semaphore_set(key_t key, int size);
+void semaphore_execute(semaphores * sems, int op, int index, short flag);
+void semaphore_increase(semaphores * sems, int index);
+void semaphore_decrease(semaphores * sems, int index);
+void wait_for_semaphore(semaphores * sems, int index);
+int get_semaphore_value(semaphores * sems, int index);
+void delete_semaphore_set(semaphores * sems);
 
 
 
