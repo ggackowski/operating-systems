@@ -29,9 +29,6 @@ int count_pack(shared_memory * a) {
     return cnt;
 }
 
-void wait(int sem_id) {
-    //semaphore_decrease(sems, sem_id);
-}
 
 long int now() {
     struct timespec ts;
@@ -44,11 +41,8 @@ int main(int argc, string array argv) {
     signal(SIGINT, sigint);
     arr = open_shared_memory(argv[1], MAX_ORDERS + 1);
     sems = open_semaphore_set(&argv[2], 1);
-    //printf("sem id: %d\n", semaf_id);
-
 
     while (1) {
-        //printf("Czekam na semafor nr %d\n", semaf_id);
         sem_wait(sems->ids[0]);
         int n;
         int found = 0;
@@ -70,9 +64,5 @@ int main(int argc, string array argv) {
         
             printf("(%d %ld) Przygotowalem zamowienie o wielkosci: %d. Liczba zamownien do przygotowania: %d. Liczba zamownien do wyslania: %d\n", pid, now(), n, m, x);
         }
-
-        //semaphore_decrease(sems, semaf_id);
-        //printf("increased\n");
-        //sleep(1);
     }
 }
