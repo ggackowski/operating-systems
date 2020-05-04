@@ -3,7 +3,6 @@ Testowy obraz: mountain.ascii.pgm
 rozmiar: 640 x 480
 
 
-
 1 wątek:
 
 SIGN:
@@ -107,3 +106,5 @@ Czas wykonania watku 5: 239
 Czas wykonania watku 6: 227
 Czas wykonania watku 7: 211
 Calkowity czas: 758
+
+Program działał najszybciej przy 4 wątkach i trybie INTERLEAVED, natomiast najwolniej dla 8 wątków i trybu SIGN. Może być to związane z tym, że program uruchamiany był na procesorze czterowątkowym. Program w trybie SIGN trwa najdłużej, ponieważ każdy wątek musi przeszukać cały obraz za każdym razem, w celu zlokalizowania odpowiednich odcieni. W pozostałych trybach można zoptymalizować tę operację, ograniczając działania wątku tylko do części powierzchni obrazu.

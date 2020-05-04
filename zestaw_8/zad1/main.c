@@ -99,8 +99,6 @@ void * count_pixels_in_set(void * args) {
     long begin  = gettime();
     int k = *((int *)args);
     int m1 = 256 / threads_cnt;
-//    printf("%d %d\n", k, m1);
-
     for (int i = 0; i < height_img; ++i)
         for (int j = 0; j < width_img; ++j) 
             if (input_img[i][j] >= (k * m1) && input_img[i][j] < ((k + 1) * m1)) 
@@ -115,8 +113,6 @@ void * count_pixels_in_block(void * args) {
     long begin  = gettime();
     int k = *((int *)args);
     int m2 = (int)ceil((double)width_img / threads_cnt);
-//    printf("watek z k = %d i m = %d\n", k, m2);
-
     for (int i = 0; i < height_img; ++i)
         for (int j = 0; j < width_img; ++j) 
             if(j >= (k) * m2 && j <= (k + 1) * m2 - 1) 
@@ -130,8 +126,6 @@ void * count_pixels_in_block(void * args) {
 void * count_pixels_in_interval(void * args) {
     long begin  = gettime();
     int k = *((int *)args);
-   // printf("proces z k %d\n", k);
-
     for (int i = 0; i < height_img; ++i)
         for (int j = k; j < width_img; j += threads_cnt) 
                 histogram_parts[k][input_img[i][j]]++;
