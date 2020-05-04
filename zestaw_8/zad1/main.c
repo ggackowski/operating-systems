@@ -8,29 +8,11 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/time.h>
 #include <math.h>
 
 #define new(Type) calloc(1, sizeof(Type))
 #define New(Type, n) calloc(n, sizeof(Type))
-
-pthread_t * create_and_run_thread(void * (*f) (void *), void * args) {
-    pthread_t * thread = new (pthread_t);
-    pthread_create(thread, NULL, f, args);
-    return thread;
-}
-
-void * print(void * a) {
-    while (1) {
-        printf("watek\n");
-        sleep(1);
-    }
-    return NULL;
-}
-
-void error(char * err) {
-    printf("[ERR] %s\n", err);
-    exit(-1);
-}
 
 int threads_cnt;
 int mode;
@@ -40,11 +22,42 @@ char output_filename[128];
 int width_img;
 int height_img;
 int max_val;
+int max;
 short ** input_img;
 short ** output_img;
 
 int histogram[256];
 int args[2];
+
+pthread_t ** threads = NULL;
+int thread_i = 0;
+
+void create_and_run_thread(void * (*f) (void *), void * args) {
+    if (threads == NULL) {
+        threads = New (pthread_t, threads_cnt);
+    }
+
+    threads[thread_i] = new (pthread_t);
+    pthread_create(threads[thread_i], NULL, f, args);
+    thread_i++;
+}
+
+void error(char * err) {
+    printf("[ERR] %s\n", err);
+    exit(-1);
+}
+
+long gettime() {
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+    return 1000000 * tv.tv_sec + tv.tv_usec;
+}
+
+long * time_diff(long b, long e) {
+    long * t = new (long);
+    *t = e - b;
+    return t;
+}
 
 void read_image() {
     FILE * input_file = fopen(input_filename, "r");
@@ -66,20 +79,13 @@ void read_image() {
 
 }
 
-void create_output_file() {
-    output_img = New (short *, max_val + 1);
-    for (int i = 0; i <= max_val; ++i) 
-        output_img[i] = New (short, width_img * height_img);
-}
-
 void save_image() {
     FILE * output_file = fopen(output_filename, "w");
-    printf("%s", strerror(errno));
-    fprintf(output_file, "P2\n%d %d\n%d\n", width_img * height_img, max_val + 1, 250);
-    for (int i = 0; i <= max_val; ++i) {
-        for (int j = 0; j < width_img * height_img; ++j)
+    fprintf(output_file, "P2\n%d %d\n%d\n", max + 1, max_val, 255);
+    for (int i = 0; i < max_val; ++i) {
+        for (int j = 0; j <= max; ++j)
             if (j <= histogram[i]) 
-                fprintf(output_file, "%d ", 256);
+                fprintf(output_file, "%d ", 255);
             else 
                 fprintf(output_file, " %d ", 0);
         fprintf(output_file, "\n");
@@ -87,59 +93,51 @@ void save_image() {
     fclose(output_file);
 }
 
-int in(int what, int * arr, int s) {
-    for (int i = 0; i < s; ++i) 
-        if (arr[i] == what) 
-            return 1;
-    return 0;
-}
+int ** histogram_parts;
 
-void * count_pixels_in_set() {
-    int k = args[0];
-    int m = args[1];
-    args[0]++;
-    printf("%d %d\n", k, m);
+void * count_pixels_in_set(void * args) {
+    long begin  = gettime();
+    int k = *((int *)args);
+    int m1 = 256 / threads_cnt;
+//    printf("%d %d\n", k, m1);
 
     for (int i = 0; i < height_img; ++i)
-        for (int j = 0; j < width_img; ++j) {
-            if (input_img[i][j] >= (k * m) && input_img[i][j] < ((k + 1) * m)) {
-                histogram[input_img[i][j]]++;
-                printf("ok");
-            }
-        }
+        for (int j = 0; j < width_img; ++j) 
+            if (input_img[i][j] >= (k * m1) && input_img[i][j] < ((k + 1) * m1)) 
+                histogram_parts[k][input_img[i][j]]++;
+
+    long end = gettime();
+    pthread_exit((void *) time_diff(begin, end));
     return NULL;
 }
 
-void * count_pixels_in_block() {
-    int k = args[0];
-    int m = args[1];
-    args[0]++;
-    printf("%d %d\n", k, m);
+void * count_pixels_in_block(void * args) {
+    long begin  = gettime();
+    int k = *((int *)args);
+    int m2 = (int)ceil((double)width_img / threads_cnt);
+//    printf("watek z k = %d i m = %d\n", k, m2);
 
     for (int i = 0; i < height_img; ++i)
-        for (int j = 0; j < width_img; ++j) {
-            if(j >= (k - 1) * ceil(m) && j <= k * ceil(m) - 1) {
-                histogram[input_img[i][j]]++;
-                printf("ok");
-            }
-        }
+        for (int j = 0; j < width_img; ++j) 
+            if(j >= (k) * m2 && j <= (k + 1) * m2 - 1) 
+                histogram_parts[k][input_img[i][j]]++;
+        
+    long end = gettime();
+    pthread_exit((void *) time_diff(begin, end));
     return NULL;
 }
 
-void * count_pixels_in_interval() {
-    int k = args[0];
-
-    args[0]++;
-
-    printf("w %d\n", k);
+void * count_pixels_in_interval(void * args) {
+    long begin  = gettime();
+    int k = *((int *)args);
+   // printf("proces z k %d\n", k);
 
     for (int i = 0; i < height_img; ++i)
-        for (int j = 0; j < width_img; ++j) {
-            if((j - k + 1) % threads_cnt == 0) {
-                histogram[input_img[i][j]]++;
-                printf("ok");
-            }
-        }
+        for (int j = k; j < width_img; j += threads_cnt) 
+                histogram_parts[k][input_img[i][j]]++;
+
+    long end = gettime();
+    pthread_exit((void *) time_diff(begin, end));
     return NULL;
 }
 
@@ -147,7 +145,6 @@ int main(int argc, char ** argv) {
     
     if (argc < 5) error("Too little arguments");
     threads_cnt = atoi(argv[1]);
-
     
     if (strcmp(argv[2], "sign") == 0)
         mode = SIGN;
@@ -160,51 +157,54 @@ int main(int argc, char ** argv) {
     if (!strcpy(input_filename, argv[3])) error("problem with arg 3");
     if (!strcpy(output_filename, argv[4])) error("problem with arg 4");  
 
+    histogram_parts = New (int *, threads_cnt);
+    for (int i = 0; i < threads_cnt; ++i)
+        histogram_parts[i] = New (int, 256);
+
     read_image();
 
-    create_output_file();
+    int * args = New (int, threads_cnt);
 
-    for (int i = 0; i < 256; ++i) histogram[i] = 0;
+    for (int i = 0; i < threads_cnt; ++i) {
+        args[i] = i;
+    }
+    long begin = gettime();
+
+    if (mode == SIGN) 
+        for (int i = 0; i < threads_cnt; ++i) 
+            create_and_run_thread(count_pixels_in_set, ((void *) &args[i]));
+
+    else if (mode == BLOCK) 
+        for (int i = 0; i < threads_cnt; ++i) 
+            create_and_run_thread(count_pixels_in_block, ((void *) &args[i]));
     
-    if (mode == SIGN) {
-        int m = 256 / threads_cnt;
-        args[0] = 0;
-        args[1] = m;
-        for (int i = 0; i < threads_cnt; ++i) {
-            printf("%d", i);
-            create_and_run_thread(count_pixels_in_set, NULL);
-        }
+    else if (mode == INTERLEAVED) 
+        for (int i = 0; i < threads_cnt; ++i) 
+            create_and_run_thread(count_pixels_in_interval, ((void *) &args[i]));
+
+    for (int i = 0; i < threads_cnt; ++i) {
+        void * result;
+        pthread_join(*threads[i], &result);
+        printf("Czas wykonania watku %d: %ld\n", i, *((long *)result));
     }
-    else if (mode == BLOCK) {
-        int m = width_img / threads_cnt;
-        args[0] = 0;
-        args[1] = m;
-        for (int i = 0; i < threads_cnt; ++i) {
-            printf("%d", i);
-            create_and_run_thread(count_pixels_in_block, NULL);
-        }
+
+    long end = gettime();
+
+    printf("Calkowity czas: %ld\n", *time_diff(begin, end));
+
+    for (int i = 0; i < threads_cnt; ++i) {
+        for (int j = 0; j < 256; ++j) 
+            histogram[j] += histogram_parts[i][j];
     }
-    else if (mode == INTERLEAVED) {
-        int m = width_img / threads_cnt;
-        args[0] = 0;
-        args[1] = 0;
-        for (int i = 0; i < threads_cnt; ++i) {
-            printf("%d", i);
-            create_and_run_thread(count_pixels_in_interval, NULL);
+
+    max = 0;
+    for (int i = 0; i < 256; ++i) {
+        if (histogram[i] > max) {
+            max = histogram[i];
         }
     }
 
-    printf("C"); fflush(stdout);
     save_image();
 
-    create_and_run_thread(print, NULL);
-
-    char buff[32];
-
-    while(1) {
-        scanf("%s", buff);
-        printf("%s %s\n", buff, buff);
-    }
-    
     return 0;
 }

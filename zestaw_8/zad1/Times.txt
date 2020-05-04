@@ -1,0 +1,109 @@
+Testowy obraz: mountain.ascii.pgm
+
+rozmiar: 640 x 480
+
+
+
+1 wątek:
+
+SIGN:
+
+Czas wykonania watku 0: 1444
+Calkowity czas: 1675
+
+BLOCK:
+
+Czas wykonania watku 0: 1044
+Calkowity czas: 1283
+
+INTERLEAVED:
+
+Czas wykonania watku 0: 850
+Calkowity czas: 1040
+
+
+2 wątki:
+
+SIGN:
+
+Czas wykonania watku 0: 1406
+Czas wykonania watku 1: 1362
+Calkowity czas: 1665
+
+BLOCK:
+
+Czas wykonania watku 0: 857
+Czas wykonania watku 1: 825
+Calkowity czas: 1141
+
+INTERLEAVED:
+
+Czas wykonania watku 0: 408
+Czas wykonania watku 1: 396
+Calkowity czas: 660
+
+
+4 wątki:
+
+SIGN:
+
+Czas wykonania watku 0: 1247
+Czas wykonania watku 1: 2402
+Czas wykonania watku 2: 1521
+Czas wykonania watku 3: 1893
+Calkowity czas: 2522
+
+BLOCK:
+
+Czas wykonania watku 0: 817
+Czas wykonania watku 1: 775
+Czas wykonania watku 2: 1287
+Czas wykonania watku 3: 1233
+Calkowity czas: 1472
+
+INTERLEAVED:
+
+Czas wykonania watku 0: 267
+Czas wykonania watku 1: 239
+Czas wykonania watku 2: 410
+Czas wykonania watku 3: 410
+Calkowity czas: 597
+
+
+8 wątków:
+
+SIGN:
+
+Czas wykonania watku 0: 1885
+Czas wykonania watku 1: 2181
+Czas wykonania watku 2: 2318
+Czas wykonania watku 3: 2216
+Czas wykonania watku 4: 2183
+Czas wykonania watku 5: 1944
+Czas wykonania watku 6: 1630
+Czas wykonania watku 7: 1568
+Calkowity czas: 3495
+
+BLOCK:
+
+Czas wykonania watku 0: 1266
+Czas wykonania watku 1: 1301
+Czas wykonania watku 2: 1229
+Czas wykonania watku 3: 1229
+Czas wykonania watku 4: 1167
+Czas wykonania watku 5: 1118
+Czas wykonania watku 6: 818
+Czas wykonania watku 7: 834
+Calkowity czas: 2183
+
+INTERLEAVED:
+
+Czas wykonania watku 0: 217
+Czas wykonania watku 1: 207
+Czas wykonania watku 2: 208
+Czas wykonania watku 3: 239
+Czas wykonania watku 4: 245
+Czas wykonania watku 5: 239
+Czas wykonania watku 6: 227
+Czas wykonania watku 7: 211
+Calkowity czas: 758
