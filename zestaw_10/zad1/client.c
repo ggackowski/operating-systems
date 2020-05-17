@@ -11,7 +11,8 @@
 #define PLAYER_SEARCH 1
 #define GAME_STARTED 2
 #define BAD_USERNAME 4
-
+#define GAME_REFRESH 5
+#define GAME_REFRESH_MOVE 6
 #define SERWER_PORT 8888
 #define MAX_MSG_LEN 4096
 #define SERWER_IP "127.0.0.1"
@@ -57,13 +58,14 @@ int connect_to_server(int port, char * ip) {
 char * board;
 
 char * parse_response(char * msg) {
+    //printf("%s\n\n", msg);
     char * key;
     char * data;
     key = strtok(msg, "|");
-    if (!strcmp(key, "map")) {
-        board = strtok(NULL, "|");
+    if (!strcmp(key, "mapv") || !strcmp(key, "map")) {
+        strcpy(board, strtok(NULL, "|"));
     }
-    else return key;
+    return key;
     
 }
 
@@ -72,20 +74,32 @@ int state = NONE;
 void * f(void * sockt) {
     int sckt = *((int *) sockt);
     while (1) {
-        char * response = con_receive(sckt);
-        if (!strcmp(parse_response(response), "search")) {
+        char * response = parse_response(con_receive(sckt));
+        //printf("tutej\n");
+        if (!strcmp(response, "search")) {
             state = PLAYER_SEARCH;
         }
-        if (!strcmp(parse_response(response), "start")) {
+        if (!strcmp(response, "start")) {
             state = GAME_STARTED;
         }
-        if (!strcmp(parse_response(response), "badusr")) {
+        if (!strcmp(response, "badusr")) {
             state = BAD_USERNAME;
-        }  
-        //printf("odp: %s\n", response);
-        //sleep(1);
+        }
+        if (!strcmp(response, "map")) {
+            //printf("state set\n");
+            state = GAME_REFRESH;
+        }
+        if (!strcmp(response, "mapv")) {
+            //printf("state set\n");
+            state = GAME_REFRESH_MOVE;
+        }    
+
     }
 
+}
+
+void print_board() {
+    printf("%c|%c|%c\n- - -\n%c|%c|%c\n- - -\n%c|%c|%c\n", board[0], board[1], board[2], board[3], board[4], board[5], board[6], board[7], board[8]);
 }
 
 int main(int argc, char ** argv) {
@@ -108,11 +122,24 @@ int main(int argc, char ** argv) {
                 break;
             case GAME_STARTED:
                 printf("starting a game!\n");
-                printf("%c|%c|%c\n- - -\n%c|%c|%c\n- - -\n%c|%c|%c\n", board[0], board[1], board[2], board[3], board[4], board[5], board[6], board[7], board[8]);
+                print_board();
                 break;  
             case BAD_USERNAME:
                 printf("this username is not free.\nStopping..\n");
                 exit(0);
+                break;
+            case GAME_REFRESH:
+                //printf("noooo\n\n");
+                print_board();
+                break;
+            case GAME_REFRESH_MOVE:
+                print_board();
+                printf("1-9:\n");
+                int response;
+                scanf("%d", &response);
+                char * msg = New (char, 64);
+                sprintf(msg, "move|%d|", response);
+                con_send(server_socket, msg);
                 break;
             default:
                 break;
