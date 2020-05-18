@@ -6,6 +6,7 @@
 #include <arpa/inet.h> // inet_pton()
 #include <pthread.h>
 #include <time.h>
+#include <signal.h>
 
 #define NONE 0
 #define PLAYER_SEARCH 1
@@ -22,10 +23,16 @@ const short HTTP_PORT = 80;
 #define new(Type) calloc(1, sizeof(Type))
 #define New(Type, Size) calloc(Size, sizeof(Type))
 
+pthread_t ** threads;
+int thread_cnt = 0;
+
 void create_and_run_thread(void * (*f) (void *), void * args) {
     pthread_t * thread = new (pthread_t);
     pthread_create(thread, NULL, f, args);
+    threads[thread_cnt++] = thread;
 }
+
+int server_socket;
 
 typedef struct sockaddr_in sockaddr_in;
 
@@ -35,34 +42,50 @@ char * String(char * s) {
     return str;
 } 
 
+void sigint(int sig){
+	shutdown(server_socket, SHUT_RDWR);
+    
+	exit(0);
+}
+
+void error(char * msg) {
+    printf("err: %s\n", msg);
+    sigint(0);
+}
+
 char * con_receive(int socket) {
     char * message = New (char, MAX_MSG_LEN);
-    recv(socket, message, MAX_MSG_LEN, 0);
+    if (recv(socket, message, MAX_MSG_LEN, 0) < 0)
+        error("recv");
     return message;
 }
 
 void con_send(int socket, char * message) {
-    send( socket, message, strlen(message), 0 );
+    if (send( socket, message, strlen(message), 0 ) < 0)
+        error("send");
 }
 
 int connect_to_server(int port, char * ip) {
     sockaddr_in * address = new (sockaddr_in);
     address->sin_family = AF_INET;
     address->sin_port = htons(port);
-    inet_pton(AF_INET, ip, &(address->sin_addr));
+    if (inet_pton(AF_INET, ip, &(address->sin_addr)) < 0) error("inet_pton");
     int server_socket = socket(AF_INET, SOCK_STREAM, 0); 
-    connect(server_socket, (struct sockaddr *) address, sizeof(*address));
+    if (socket < 0) error("socket");
+    if (connect(server_socket, (struct sockaddr *) address, sizeof(*address)) < 0) error("connect");
+    printf("done\n");
     return server_socket;
 }
 
 char * board;
 
 char * parse_response(char * msg) {
-    //printf("%s\n\n", msg);
+    //printf("msg: %s\n", msg);
+    if (msg == NULL || !strcmp(msg, "")) return NULL;
     char * key;
     char * data;
     key = strtok(msg, "|");
-    if (!strcmp(key, "mapv") || !strcmp(key, "map")) {
+    if (key != NULL && (!strcmp(key, "mapv") || !strcmp(key, "map"))) {
         strcpy(board, strtok(NULL, "|"));
     }
     return key;
@@ -74,8 +97,11 @@ int state = NONE;
 void * f(void * sockt) {
     int sckt = *((int *) sockt);
     while (1) {
+        //sleep(1);  
         char * response = parse_response(con_receive(sckt));
-        //printf("tutej\n");
+       // printf("tutej\n response: [%s]\n", response);
+        if (response == NULL) continue;
+        printf("got %s\n", response);
         if (!strcmp(response, "search")) {
             state = PLAYER_SEARCH;
         }
@@ -86,31 +112,34 @@ void * f(void * sockt) {
             state = BAD_USERNAME;
         }
         if (!strcmp(response, "map")) {
-            //printf("state set\n");
             state = GAME_REFRESH;
         }
         if (!strcmp(response, "mapv")) {
-            //printf("state set\n");
             state = GAME_REFRESH_MOVE;
-        }    
+        }
 
     }
 
 }
 
 void print_board() {
+    system("clear");
     printf("%c|%c|%c\n- - -\n%c|%c|%c\n- - -\n%c|%c|%c\n", board[0], board[1], board[2], board[3], board[4], board[5], board[6], board[7], board[8]);
 }
 
 int main(int argc, char ** argv) {
+    signal(SIGINT, sigint);
     char * username = argv[1];
+    threads = New (pthread_t *, 32);
     char * ip_server_address = argv[3];
     int port_num = atoi(argv[4]);
     board = New (char, 9);
     for (int i = 0; i < 9; ++i) board[i] = ' ';
     char buffer[128];
-    int server_socket = connect_to_server(port_num, ip_server_address);
-    con_send(server_socket, username);
+    server_socket = connect_to_server(port_num, ip_server_address);
+    char * name = New (char, 64);
+    sprintf(name, "name|%s|", username);
+    con_send(server_socket, name);
     create_and_run_thread(f, &server_socket);
     while(1) {
         int old_state = state;
@@ -126,10 +155,9 @@ int main(int argc, char ** argv) {
                 break;  
             case BAD_USERNAME:
                 printf("this username is not free.\nStopping..\n");
-                exit(0);
+                sigint(0);
                 break;
             case GAME_REFRESH:
-                //printf("noooo\n\n");
                 print_board();
                 break;
             case GAME_REFRESH_MOVE:

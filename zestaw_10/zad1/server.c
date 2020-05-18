@@ -9,6 +9,9 @@
 #include <time.h>
 #include <errno.h>
 #include <sys/fcntl.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <signal.h>
 #include <sys/epoll.h>
 
 #define MAX_MSG_LEN 4096
@@ -18,6 +21,8 @@
 #define MAX_PLAYERS 16
 #define PL1_CROSS 1
 #define PL2_CROSS 0
+#define PL1 1
+#define PL2 2
 
 #define new(Type) calloc(1, sizeof(Type))
 #define New(Type, Size) calloc(Size, sizeof(Type))
@@ -40,13 +45,18 @@ typedef struct {
     int player2;
     int mode;
     int finish;
+    int tour;
 } Game;
 
 Game games[MAX_PLAYERS];
 
+pthread_t ** threads;
+int thread_cnt = 0;
+
 void create_and_run_thread(void * (*f) (void *), void * args) {
     pthread_t * thread = new (pthread_t);
     pthread_create(thread, NULL, f, args);
+    threads[thread_cnt++] = thread;
 }
 
 
@@ -59,38 +69,72 @@ typedef struct {
     char ip[64];
 } Connection;
 
+Connection * server;
+
 char * String(char * s) {
     char * str = New(char, MAX_MSG_LEN);
     strcpy(str, s);
     return str;
 } 
 
+void error(char * msg) {
+    printf("err: %s with errno %d (%s)\n", msg, errno, strerror(errno));
+    sigint(0);
+}
+
+void sigint(int sig){
+    for (int i = 0; i < thread_cnt; ++i) 
+        pthread_kill(*(threads[i]), SIGINT);
+	shutdown(server->connection_socket, SHUT_RDWR);
+    for (int i = 0; i < MAX_PLAYERS; ++i) {
+        if (players[i].socket > 0)
+            shutdown(players[i].socket, SHUT_RDWR);
+    } 
+	exit(0);
+}
+
+
 struct epoll_event event, events[MAX_PLAYERS];
 int  epoll_fd;
+int epoll_max;
 
 Connection * new_connection(int port, int max_mess_len, char * ip, int max_conn) {
-    Connection * conn = new(Connection);
+    Connection * conn = new (Connection);
     conn->address.sin_family = AF_INET;
     conn->address.sin_port = htons(port);
-    inet_pton(AF_INET, ip, &conn->address.sin_addr);
+    if (inet_pton(AF_INET, ip, &conn->address.sin_addr) <= 0) error("inetpton");
     conn->connection_socket = socket(AF_INET, SOCK_STREAM, 0);
-
+    if (socket < 0) error("socket error");
     conn->max_conn = max_conn;
-    bind(conn->connection_socket, (struct sockaddr_in *) &(conn->address), sizeof(conn->address));
+    if (bind(conn->connection_socket, (struct sockaddr_in *) &(conn->address), sizeof(conn->address)) < 0) error("bind");
     return conn;
 }
 
 void con_listen(Connection * conn) {
-    listen(conn->connection_socket, conn->max_conn);
+    if (listen(conn->connection_socket, conn->max_conn) < 0) error("listen");
 }
 
 sockaddr_in * new_address() {
     return NULL;
 }
 
+void add_to_epoll(int desc) {
+    struct epoll_event ev = { .events = EPOLLIN | EPOLLPRI };
+    ev.data.fd = desc;
+    if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, desc, &ev)) //0 - deskryptor
+    {
+        fprintf(stderr, "Failed to add file descriptor %d to epoll\n", desc);
+        close(epoll_fd);
+        sigint(0);
+    }
+}
+
 int con_accept(Connection * conn, sockaddr_in * client) {
-    int len;
+    printf("accepting now\n");
+    int len = sizeof(struct sockaddr_in *);
     int a = accept(conn->connection_socket, (sockaddr_in *) client, &len);
+    if (a < 0) error("accept");
+    printf("accepted\n");
     return a;
 }
 
@@ -102,142 +146,168 @@ char * con_receive(int socket) {
 }
 
 void con_send(int socket, char * message) {
+    printf("IM RIGHT NOW SENDING >%s< TO %d\n", message, socket);
     send( socket, message, strlen(message), 0 );
 }
 
 int save_username_at(char * str, int client) {
+    printf("FZIEEEEEEEEEE %s, %d\n", str, client);
+    if (str == NULL) return -1;
     for (int i = 1; i < MAX_PLAYERS; ++i) {
-        if (players[i].socket == 0) {
-            pthread_mutex_lock(&mutex);
+        if (players[i].socket == -1) {
+            
             players[i].socket = client;
             players[i].username = String(str);
-            pthread_mutex_unlock(&mutex);
+            printf("umieszczam socket %d w %d\n", client, i);          
             return i;   
         }
+        if (!strcmp(players[i].username, str))
+            return -1;
+        
     }
     return -1;
 }
 
+char * send_board(char * str, int i) {
+    char * response = New (char, 64);
+    sprintf(response, "%s|%c%c%c%c%c%c%c%c%c|", str, games[i].board[0], games[i].board[1], games[i].board[2], games[i].board[3], games[i].board[4], games[i].board[5], games[i].board[6], games[i].board[7], games[i].board[8]);
+    return response;            
+}
+
 void * search_for_player(void * cl) {
+    printf("search for player\n");
+    for (int i = 1; i < MAX_PLAYERS; ++i) {
+        printf("%s ", players[i].username);
+    }
     int client = *((int *) cl);
+    printf("moj socket etraz: %d\n", client);
     int place = -1;
     con_send(client, String("search"));
-    
+    int game_id = -1;
     for (int i = 1; i < MAX_PLAYERS; ++i) if (client == players[i].socket) place = i;
+    printf("mam gdzie jest gracz: %d\n", place);
         int wait = 1;
         while (wait) {
             for (int i = 1; i < MAX_PLAYERS && wait; ++i) {
-                pthread_mutex_lock(&mutex);
-                if (!players[i].is_in_game && i != place && players[i].socket != 0) {
-                    //printf("%d %d %d", players[i].is_in_game, )
+                //pthread_mutex_lock(&mutex);
+                if (!players[i].is_in_game && i != place && players[i].socket != -1) {
+                    printf("mam gracza %d, %s\n", i, players[i].username);
                     players[i].is_in_game = 1;
                     players[place].is_in_game = 1;
                     for (int j = 1; j < MAX_PLAYERS; ++j) {
-                        if (games[j].player1 == 0) {
+                        if (games[j].player1 == -1) {
                             games[j].board[0] = games[j].board[1] = games[j].board[2] = games[j].board[3] = games[j].board[4] = games[j].board[5] = games[j].board[6] = games[j].board[7] = games[j].board[8] = ' '; 
                             games[j].player1 = place;
                             games[j].player2 = i;
-                            games[j].mode = PL1_CROSS;
+                            games[j].mode =  rand() % 2 ? PL1_CROSS : PL2_CROSS;
+                            games[j].tour = rand() % 2 ? PL1 : PL2;
+                            game_id = j;
                             break;
                         }
                     }
-                    con_send(client, String("start"));
-                    con_send(players[i].socket, String("start"));
+                    if (games[game_id].tour == PL1) {
+                        con_send(players[games[game_id].player1].socket, send_board("mapv", game_id));
+                        con_send(players[games[game_id].player2].socket, send_board("map", game_id));
+                    }
+                    else {
+                        con_send(players[games[game_id].player1].socket, send_board("map", game_id));
+                        con_send(players[games[game_id].player2].socket, send_board("mapv", game_id));
+                    }
                     wait = 0;
+                    printf("found a game\n");
                 }
-                pthread_mutex_unlock(&mutex);
             }
         }
 }
 
 void make_move(int player, int where) {
     pthread_mutex_lock(&mutex);
+    int game_id = -1;
     for (int i = 1; i < MAX_PLAYERS; ++i) {
         if (games[i].player1 == player) {
             games[i].board[where] = games[i].mode == PL1_CROSS ? 'X' : 'O';
+            game_id = i;
+            break;
         }
         if (games[i].player2 == player) {
             games[i].board[where] = games[i].mode == PL2_CROSS ? 'X' : 'O';
+            game_id = i;
+            break;
         }
+        
+    }
+    games[game_id].tour = games[game_id].tour == PL1 ? PL2 : PL1;
+    if (games[game_id].tour == PL1) {
+        con_send(players[games[game_id].player1].socket, send_board("mapv", game_id));
+        con_send(players[games[game_id].player2].socket, send_board("map", game_id));
+    }
+    else {
+        con_send(players[games[game_id].player1].socket, send_board("map", game_id));
+        con_send(players[games[game_id].player2].socket, send_board("mapv", game_id));
     }
     pthread_mutex_unlock(&mutex);
 }
 
-Connection * server;
+
 
 void * connection_thread(void * args) {
     while (1) {
-        //sleep(1);
         printf("waiting na conn\n");
         int client = con_accept(server, new (sockaddr_in));
-        int place = save_username_at(con_receive(client), client);
-        printf("Connected\n");
-        if (place == -1) {
-            con_send(client, String("badusr"));
-            shutdown(client, SHUT_RDWR);   
-        }
-        else {
-            if (!players[place].is_in_game)
-                create_and_run_thread(search_for_player, &client);
-        }
+        add_to_epoll(client);
+        printf("added to epoll\n");   
     }
 }
 
+int adding_player;
+
 char * parse_response(char * msg, int player) {
+    printf("%s\n", msg);
     char * key;
     char * data;
     key = strtok(msg, "|");
     if (!strcmp(key, "move")) {
+        printf("hes moving!\n");
         int where = atoi(strtok(NULL, "|"));
-        make_move(players, where);
+        make_move(player, where);
+    }
+    if (!strcmp(key, "name")) {
+        
+        char * name = strtok(NULL, "|");
+        int place = save_username_at(name, player);
+        if (place == -1) {
+            con_send(player, String("badusr"));
+            shutdown(player, SHUT_RDWR);   
+        }
+        else {
+                adding_player = player;
+                create_and_run_thread(search_for_player, &adding_player);
+        }
+       
     }
     else return key;
     
 }
 
-void * response_thread(void * args) {
-    while (1) {
-        //sleep(1);
-        for (int i = 1; i < MAX_PLAYERS; ++i) {
-            if (players[i].socket != 0) {
-                char * response = con_receive(players[i].socket);
-                if (response != NULL) {
-                    parse_response(response, i);
-                }
-            }
-        }
-    }
-}
 
-void add_to_epoll(int desc) {
-    if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, desc, &event)) //0 - deskryptor
-    {
-        fprintf(stderr, "Failed to add file descriptor %d to epoll\n", desc);
-        close(epoll_fd);
-        exit(1);
-    }
-}
 
-char * send_board(char * str, int i) {
-    char * response = New (char, 64);
-    sprintf(response, "%s|X%c%c%c%c%c%c%c%c|", str, games[i].board[1], games[i].board[2], games[i].board[3], games[i].board[4], games[i].board[5], games[i].board[6], games[i].board[7], games[i].board[8]);
-    return response;            
-}
 
 int main(int argc, char ** argv) {
+    for (int i = 1; i < MAX_PLAYERS; ++i)  {players[i].socket = -1; games[i].player1 = -1; games[i].player2 = -1; }
+    srand(time(NULL));
+    signal(SIGINT, sigint);
+    threads = New (pthread_t *, 32);
     epoll_fd = epoll_create1(0);
     if(epoll_fd == -1)
     {
         fprintf(stderr, "Failed to create epoll file descriptor\n");
-        return 1;
+        sigint(0);
     }
     
     event.events = EPOLLIN;
-    event.data.fd = 0;
-    
-    
-
-
+    event.data.fd = MAX_PLAYERS;
+    event.events = EPOLLIN | EPOLLPRI;
+    epoll_max = 0;
     int port = atoi(argv[1]);
 
     server = new_connection(port, MAX_MSG_LEN, SERWER_IP, MAX_CONNECTION);
@@ -245,18 +315,37 @@ int main(int argc, char ** argv) {
     con_listen(server);
     create_and_run_thread(connection_thread, NULL);
     while (1) {
-        sleep(1);
+        //sleep(1);
         printf("server loop\n");
-        pthread_mutex_lock(&mutex);
-        for (int i = 1; i < MAX_PLAYERS; ++i) {
-            if (games[i].player1 != 0) {               
-                char * resp1 = send_board("map", i);
-                char * resp2 = send_board("mapv", i);
-                
-                con_send(players[games[i].player1].socket, resp1);
-                con_send(players[games[i].player2].socket, resp2);
-            }
+        int nfds = epoll_wait(epoll_fd, events, MAX_PLAYERS, 3000);
+        if (nfds < 0) {
+            printf("err epol wait\n");
+            sigint(0);
         }
-        pthread_mutex_unlock(&mutex);
+        //pthread_mutex_lock(&mutex);
+        for (int i = 0; i < nfds; ++i) {
+            printf("odczyt z socketu %d\n", i);
+            int sckt = events[i].data.fd;
+            printf("mam socket %d\n", sckt);
+            int a_player = 0;
+            for (int j = 0; j < MAX_PLAYERS; ++j) {
+                if (sckt == players[j].socket) {
+                    a_player = 1;
+                    printf("socket nalezy do gracza %s\n", players[j].username);
+                    char * response = con_receive(sckt);
+                    if (response != NULL) {
+                        parse_response(response, j);
+                    }
+                }
+            }
+            if (!a_player) {
+                printf("dodaje gracza\n");
+                char * response = con_receive(sckt);
+                if (response != NULL) {
+                    parse_response(response, sckt);
+                }
+            }
+            printf("po dodaniu\n");
+        }
     }
 }
