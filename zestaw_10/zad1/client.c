@@ -1,25 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h> // exit()
-#include <string.h> // strlen()
-#include <sys/socket.h> // socket()
-#include <netinet/in.h> // struct sockaddr_in
-#include <arpa/inet.h> // inet_pton()
-#include <pthread.h>
-#include <time.h>
-#include <signal.h>
-
-#define NONE 0
-#define PLAYER_SEARCH 1
-#define GAME_STARTED 2
-#define BAD_USERNAME 4
-#define GAME_REFRESH 5
-#define GAME_REFRESH_MOVE 6
-#define SERWER_PORT 8888
-#define MAX_MSG_LEN 4096
-#define SERWER_IP "127.0.0.1"
-
-#define new(Type) calloc(1, sizeof(Type))
-#define New(Type, Size) calloc(Size, sizeof(Type))
+#include "util.c"
 
 pthread_t ** threads;
 int thread_cnt = 0;
@@ -32,34 +11,9 @@ void create_and_run_thread(void * (*f) (void *), void * args) {
 
 int server_socket;
 
-typedef struct sockaddr_in sockaddr_in;
-
-char * String(char * s) {
-    char * str = New(char, MAX_MSG_LEN);
-    strcpy(str, s);
-    return str;
-} 
-
 void sigint(int sig){
 	shutdown(server_socket, SHUT_RDWR);
 	exit(0);
-}
-
-void error(char * msg) {
-    printf("err: %s\n", msg);
-    sigint(0);
-}
-
-char * con_receive(int socket) {
-    char * message = New (char, MAX_MSG_LEN);
-    if (recv(socket, message, MAX_MSG_LEN, 0) < 0)
-        error("recv");
-    return message;
-}
-
-void con_send(int socket, char * message) {
-    if (send( socket, message, strlen(message), 0 ) < 0)
-        error("send");
 }
 
 int connect_to_server(int port, char * ip) {
