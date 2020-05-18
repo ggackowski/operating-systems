@@ -13,6 +13,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <sys/epoll.h>
+#include <unistd.h>
 
 #define MAX_MSG_LEN 4096
 #define SERWER_PORT 8888
@@ -220,6 +221,25 @@ void * search_for_player(void * cl) {
         }
 }
 
+void check_win(int game_id, int i) {
+    if (games[game_id].board[i] == 'X' && games[game_id].mode == PL1_CROSS) {
+                con_send(players[games[game_id].player1].socket, "win||");
+                con_send(players[games[game_id].player2].socket, "lose||");
+            }
+            else if (games[game_id].board[i] == 'X' && games[game_id].mode == PL2_CROSS) {
+                con_send(players[games[game_id].player1].socket, "lose||");
+                con_send(players[games[game_id].player2].socket, "win||");
+            }
+            else if (games[game_id].board[i] == 'O' && games[game_id].mode == PL1_CROSS) {
+                con_send(players[games[game_id].player1].socket, "lose||");
+                con_send(players[games[game_id].player2].socket, "win||");
+            }
+            else if (games[game_id].board[i] == 'O' && games[game_id].mode == PL2_CROSS) {
+                con_send(players[games[game_id].player1].socket, "win||");
+                con_send(players[games[game_id].player2].socket, "lose||");
+            }
+}
+
 void make_move(int player, int where) {
     pthread_mutex_lock(&mutex);
     int game_id = -1;
@@ -236,6 +256,30 @@ void make_move(int player, int where) {
         }
         
     }
+    int win = 0;
+    for (int i = 0; i < 3; ++i) {
+        //horizontal
+        if (games[game_id].board[3 * i] != ' ' && games[game_id].board[3 * i] == games[game_id].board[3 * i + 1] && games[game_id].board[3 * i + 1] == games[game_id].board[3 * i + 2]) {
+            check_win(game_id, 3 * i);
+            win = 1;
+        }
+        else if (games[game_id].board[i] != ' ' && games[game_id].board[i] == games[game_id].board[i + 3] && games[game_id].board[i + 3] == games[game_id].board[i + 6]) {
+            check_win(game_id, i);
+            win = 1;
+        }
+        else if (games[game_id].board[2] != ' '  && games[game_id].board[2] == games[game_id].board[4] && games[game_id].board[4] == games[game_id].board[6]) {
+            check_win(game_id, 2);
+            win = 1;
+        }
+        else if (games[game_id].board[0] != ' ' && games[game_id].board[0] == games[game_id].board[4] && games[game_id].board[4] == games[game_id].board[8]) {
+            check_win(game_id, 0);
+            win = 1;
+        }
+    }
+    if (win) {
+        printf("WIN\n");
+    }
+    if (!win) {
     games[game_id].tour = games[game_id].tour == PL1 ? PL2 : PL1;
     if (games[game_id].tour == PL1) {
         con_send(players[games[game_id].player1].socket, send_board("mapv", game_id));
@@ -244,6 +288,7 @@ void make_move(int player, int where) {
     else {
         con_send(players[games[game_id].player1].socket, send_board("map", game_id));
         con_send(players[games[game_id].player2].socket, send_board("mapv", game_id));
+    }
     }
     pthread_mutex_unlock(&mutex);
 }
@@ -261,18 +306,36 @@ void * connection_thread(void * args) {
 
 int adding_player;
 
+int responded[MAX_PLAYERS];
+
+void * ping(void * _) {
+    while (1) {
+        for (int i = 1; i < MAX_PLAYERS; ++i)
+            responded[i] = 0;
+        for (int i = 1; i < MAX_PLAYERS; ++i) {
+            if (players[i].socket != -1) {
+                con_send(players[i].socket, "ping|");
+            }
+        }
+        sleep(5);
+        for (int i = 1; i < MAX_PLAYERS; ++i)
+            if (responded[i] == 0 && players[i].socket != -1) {
+                printf("%d not responding \n", i);
+            }
+
+    }
+}
+
 char * parse_response(char * msg, int player) {
     printf("%s\n", msg);
     char * key;
     char * data;
     key = strtok(msg, "|");
     if (!strcmp(key, "move")) {
-        printf("hes moving!\n");
         int where = atoi(strtok(NULL, "|"));
         make_move(player, where);
     }
     if (!strcmp(key, "name")) {
-        
         char * name = strtok(NULL, "|");
         int place = save_username_at(name, player);
         if (place == -1) {
@@ -282,15 +345,14 @@ char * parse_response(char * msg, int player) {
         else {
                 adding_player = player;
                 create_and_run_thread(search_for_player, &adding_player);
-        }
-       
+        } 
+    }
+    if (!strcmp(key, "ping")) {
+        responded[player] = 1; 
     }
     else return key;
     
 }
-
-
-
 
 int main(int argc, char ** argv) {
     for (int i = 1; i < MAX_PLAYERS; ++i)  {players[i].socket = -1; games[i].player1 = -1; games[i].player2 = -1; }
@@ -314,6 +376,7 @@ int main(int argc, char ** argv) {
      
     con_listen(server);
     create_and_run_thread(connection_thread, NULL);
+    create_and_run_thread(ping, NULL);
     while (1) {
         //sleep(1);
         printf("server loop\n");

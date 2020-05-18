@@ -18,8 +18,6 @@
 #define MAX_MSG_LEN 4096
 #define SERWER_IP "127.0.0.1"
 
-const short HTTP_PORT = 80;
-
 #define new(Type) calloc(1, sizeof(Type))
 #define New(Type, Size) calloc(Size, sizeof(Type))
 
@@ -44,7 +42,6 @@ char * String(char * s) {
 
 void sigint(int sig){
 	shutdown(server_socket, SHUT_RDWR);
-    
 	exit(0);
 }
 
@@ -73,23 +70,19 @@ int connect_to_server(int port, char * ip) {
     int server_socket = socket(AF_INET, SOCK_STREAM, 0); 
     if (socket < 0) error("socket");
     if (connect(server_socket, (struct sockaddr *) address, sizeof(*address)) < 0) error("connect");
-    printf("done\n");
     return server_socket;
 }
 
 char * board;
 
 char * parse_response(char * msg) {
-    //printf("msg: %s\n", msg);
     if (msg == NULL || !strcmp(msg, "")) return NULL;
     char * key;
-    char * data;
     key = strtok(msg, "|");
     if (key != NULL && (!strcmp(key, "mapv") || !strcmp(key, "map"))) {
         strcpy(board, strtok(NULL, "|"));
     }
-    return key;
-    
+    return key; 
 }
 
 int state = NONE;
@@ -97,29 +90,25 @@ int state = NONE;
 void * f(void * sockt) {
     int sckt = *((int *) sockt);
     while (1) {
-        //sleep(1);  
         char * response = parse_response(con_receive(sckt));
-       // printf("tutej\n response: [%s]\n", response);
         if (response == NULL) continue;
-        printf("got %s\n", response);
-        if (!strcmp(response, "search")) {
+        if (!strcmp(response, "search")) 
             state = PLAYER_SEARCH;
-        }
-        if (!strcmp(response, "start")) {
+        if (!strcmp(response, "start")) 
             state = GAME_STARTED;
-        }
-        if (!strcmp(response, "badusr")) {
+        if (!strcmp(response, "badusr")) 
             state = BAD_USERNAME;
-        }
-        if (!strcmp(response, "map")) {
+        if (!strcmp(response, "map")) 
             state = GAME_REFRESH;
-        }
-        if (!strcmp(response, "mapv")) {
+        if (!strcmp(response, "mapv")) 
             state = GAME_REFRESH_MOVE;
+        if (!strcmp(response, "ping")) 
+            con_send(server_socket, "ping|");
+        if (!strcmp(response, "win") || !strcmp(response, "lose")) {
+            printf("You %s!", response);
+            sigint(0);
         }
-
     }
-
 }
 
 void print_board() {
@@ -173,11 +162,7 @@ int main(int argc, char ** argv) {
                 break;
         }
         while (old_state == state);
-            //sleep(1);
-
     }
-
     shutdown( server_socket, SHUT_RDWR);
-   
     return 0;
 }
